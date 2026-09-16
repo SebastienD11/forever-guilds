@@ -42,7 +42,6 @@ import {
 } from "@/components/ui/warcraftcn/pagination";
 import { Cursor } from "@/components/ui/warcraftcn/cursor";
 import heroArt from "@/assets/hero-alliance.webp";
-import brandLogo from "@/assets/brand-logo.webp";
 import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
@@ -1145,13 +1144,14 @@ function App() {
               closeDetail();
             }}
           >
-            <img
-              className="brand-logo"
-              src={brandLogo}
-              alt="Forever Guilds"
-              width={399}
-              height={205}
-            />
+            <span className="brand-mark">
+              <Shield size={22} />
+              <span>✦</span>
+            </span>
+            <span>
+              <strong>FOREVER</strong>
+              <em>GUILDS</em>
+            </span>
           </a>
           <nav className="nav">
             <span>
