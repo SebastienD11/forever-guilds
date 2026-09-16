@@ -1,22 +1,129 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <radialGradient id="sky" cx="50%" cy="48%" r="58%">
-      <stop offset="0" stop-color="#7b8568"/>
-      <stop offset=".58" stop-color="#27352f"/>
-      <stop offset="1" stop-color="#101612"/>
-    </radialGradient>
-    <radialGradient id="glow">
-      <stop offset="0" stop-color="#e4d88f"/>
-      <stop offset=".55" stop-color="#668879"/>
-      <stop offset="1" stop-color="#183029"/>
-    </radialGradient>
+    <linearGradient id="nb-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c2419"/>
+      <stop offset="1" stop-color="#100e0b"/>
+    </linearGradient>
+    <linearGradient id="nb-page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e7cb"/>
+      <stop offset="1" stop-color="#d6c29a"/>
+    </linearGradient>
+    <linearGradient id="nb-handle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4a3a22"/>
+      <stop offset="1" stop-color="#8f6b36"/>
+    </linearGradient>
+    <linearGradient id="nb-glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dce8f0" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#8aa4b5" stop-opacity="0.28"/>
+    </linearGradient>
+    <clipPath id="nb-lens">
+      <circle cx="24" cy="19" r="14"/>
+    </clipPath>
   </defs>
-  <rect width="64" height="64" rx="12" fill="#12120e"/>
-  <circle cx="32" cy="32" r="27" fill="none" stroke="#6f5429" stroke-width="1.5"/>
-  <circle cx="32" cy="32" r="24" fill="url(#sky)" stroke="#b18a48" stroke-width="2"/>
-  <path d="M8 41 21 29l8 7 9-13 18 14v15H8z" fill="#26382f" opacity=".9"/>
-  <path d="M23 49V31c0-7 4-13 9-13s9 6 9 13v18z" fill="#29291f" stroke="#c4b47b" stroke-width="2.5"/>
-  <path d="M27 48V31c0-5 2-9 5-9s5 4 5 9v17z" fill="url(#glow)"/>
-  <path d="m13 10 1.5 3.5L18 15l-3.5 1.5L13 20l-1.5-3.5L8 15l3.5-1.5z" fill="#dfbd70"/>
-  <path d="m50 46 1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="#dfbd70"/>
+  <rect width="64" height="64" rx="12" fill="url(#nb-bg)"/>
+  <g transform="translate(4 6) scale(1.167)">
+    <rect
+      x="30"
+      y="27"
+      width="18"
+      height="5"
+      rx="2.5"
+      transform="rotate(40 30 27)"
+      fill="url(#nb-handle)"
+      stroke="#6d542f"
+      stroke-width="0.8"
+    />
+    <circle
+      cx="24"
+      cy="19"
+      r="14"
+      fill="#191206"
+      stroke="#d3b06a"
+      stroke-width="2.4"
+    />
+    <g clip-path="url(#nb-lens)">
+      <path
+        d="M24 8 L10 10 L8 28 L22 32 Z"
+        fill="url(#nb-page)"
+        stroke="#b99b66"
+        stroke-width="0.8"
+      />
+      <path
+        d="M24 8 L38 10 L40 28 L26 32 Z"
+        fill="url(#nb-page)"
+        stroke="#b99b66"
+        stroke-width="0.8"
+      />
+      <line
+        x1="24"
+        y1="8"
+        x2="24"
+        y2="32"
+        stroke="#8a6b3a"
+        stroke-width="0.9"
+        opacity="0.55"
+      />
+      <line
+        x1="12.5"
+        y1="15"
+        x2="21"
+        y2="16"
+        stroke="#b08a52"
+        stroke-width="1"
+        opacity="0.75"
+      />
+      <line
+        x1="12.5"
+        y1="19.5"
+        x2="21"
+        y2="20.5"
+        stroke="#b08a52"
+        stroke-width="1"
+        opacity="0.75"
+      />
+      <line
+        x1="12.5"
+        y1="24"
+        x2="21"
+        y2="25"
+        stroke="#b08a52"
+        stroke-width="1"
+        opacity="0.75"
+      />
+      <line
+        x1="27"
+        y1="15"
+        x2="35.5"
+        y2="16"
+        stroke="#b08a52"
+        stroke-width="1"
+        opacity="0.75"
+      />
+      <line
+        x1="27"
+        y1="19.5"
+        x2="35.5"
+        y2="20.5"
+        stroke="#b08a52"
+        stroke-width="1"
+        opacity="0.75"
+      />
+      <text x="31" y="29" font-size="6.5" fill="#8f6b36" text-anchor="middle">✦</text>
+    </g>
+    <circle
+      cx="24"
+      cy="19"
+      r="14"
+      fill="url(#nb-glass)"
+      pointer-events="none"
+    />
+    <path
+      d="M17 8.5 A12 12 0 0 1 24 5"
+      fill="none"
+      stroke="#ffffff"
+      stroke-opacity="0.45"
+      stroke-width="1.6"
+      stroke-linecap="round"
+    />
+  </g>
 </svg>
