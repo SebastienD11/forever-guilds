@@ -194,17 +194,22 @@ async function guildDetail(
   return { guild, plans: plans.results, memories: memories.results };
 }
 
+async function notFoundPage(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  return env.ASSETS.fetch(
+    new Request(new URL("/__not-found__", request.url), request),
+  );
+}
+
 async function guildPage(
   request: Request,
   env: Env,
   identifier: string,
 ): Promise<Response> {
   const detail = await guildDetail(env.DB, identifier);
-  if (!detail)
-    return new Response("Guild not found.", {
-      status: 404,
-      headers: securityHeaders,
-    });
+  if (!detail) return notFoundPage(request, env);
 
   const origin = env.SITE_ORIGIN.replace(/\/$/, "");
   const canonical = `${origin}/guild/${detail.guild.slug}`;
