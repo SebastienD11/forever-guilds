@@ -1208,14 +1208,22 @@ function App() {
                     </Button>
                   </div>
                 </div>
-                <div className="hero-art wc-card-border">
-                  <img
-                    src={heroArt}
-                    alt="Alliance heroes of World of Warcraft: Forever looking out over a distant tree-city"
-                    width={1000}
-                    height={686}
-                    fetchPriority="high"
-                  />
+                <div className="hero-art" aria-hidden="true">
+                  <div className="outer-ring">
+                    <div className="inner-ring">
+                      <div className="world">
+                        <img
+                          src={heroArt}
+                          alt="Alliance heroes of World of Warcraft: Forever"
+                          width={1000}
+                          height={686}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <span className="rune rune-one">✦</span>
+                  <span className="rune rune-two">✧</span>
+                  <span className="rune rune-three">✦</span>
                 </div>
               </div>
             </section>
