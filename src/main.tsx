@@ -41,7 +41,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/warcraftcn/pagination";
 import { Cursor } from "@/components/ui/warcraftcn/cursor";
-import heroArt from "@/assets/hero-alliance.webp";
+import heroArt from "@/assets/hero-gemini.webp";
 import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
@@ -1208,22 +1208,14 @@ function App() {
                     </Button>
                   </div>
                 </div>
-                <div className="hero-art" aria-hidden="true">
-                  <div className="outer-ring">
-                    <div className="inner-ring">
-                      <div className="world">
-                        <img
-                          src={heroArt}
-                          alt="Alliance heroes of World of Warcraft: Forever"
-                          width={1000}
-                          height={686}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <span className="rune rune-one">✦</span>
-                  <span className="rune rune-two">✧</span>
-                  <span className="rune rune-three">✦</span>
+                <div className="hero-art wc-card-border">
+                  <img
+                    src={heroArt}
+                    alt="Heroes gathered before a glowing portal in World of Warcraft: Forever"
+                    width={1200}
+                    height={823}
+                    fetchPriority="high"
+                  />
                 </div>
               </div>
             </section>
