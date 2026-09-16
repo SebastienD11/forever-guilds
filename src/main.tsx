@@ -60,8 +60,27 @@ declare global {
       reset: (widgetId: string) => void;
       remove: (widgetId: string) => void;
     };
+    plausible?: {
+      (event: string, options?: unknown): void;
+      q?: unknown[][];
+      o?: unknown;
+      init?: (options?: Record<string, unknown>) => void;
+    };
   }
 }
+
+const stub: NonNullable<Window["plausible"]> = ((event: string, options?: unknown) => {
+    (stub.q = stub.q || []).push([event, options]);
+  }) as NonNullable<Window["plausible"]>;
+const plausible = window.plausible ?? stub;
+plausible.q = plausible.q || [];
+plausible.init =
+  plausible.init ||
+  ((options?: Record<string, unknown>) => {
+    plausible.o = options || {};
+  });
+plausible.init();
+window.plausible = plausible;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, options);
