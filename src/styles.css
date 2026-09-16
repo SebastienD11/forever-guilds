@@ -271,160 +271,22 @@ a {
   color: #bc9659;
 }
 .hero-art {
-  height: 510px;
+  height: 450px;
   position: relative;
-  display: grid;
-  place-items: center;
-}
-.outer-ring {
-  height: min(440px, 37vw);
-  width: min(440px, 37vw);
-  border-radius: 50%;
-  border: 2px solid #8f6b36;
+  border: 24px solid;
+  border-image-repeat: stretch;
+  border-image-slice: 24 fill;
+  padding: 12px;
   box-shadow:
-    0 0 0 8px #211b13,
-    0 0 0 9px #493b23,
-    0 0 0 16px rgba(19, 16, 11, 0.9),
-    0 0 0 17px #695330,
-    0 0 40px 24px #050504,
-    inset 0 0 30px #000;
-  display: grid;
-  place-items: center;
-  position: relative;
-  transform: rotate(-8deg);
+    0 0 0 6px #14110c,
+    0 22px 60px rgba(0, 0, 0, 0.55);
 }
-.outer-ring:before,
-.outer-ring:after {
-  content: "✦";
-  position: absolute;
-  color: #cfa95f;
-  font-size: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  top: -22px;
-  text-shadow: 0 0 13px #ecb757;
-}
-.outer-ring:after {
-  top: auto;
-  bottom: -22px;
-}
-.inner-ring {
-  height: 91%;
-  width: 91%;
-  border-radius: 50%;
-  border: 1px solid #87612d;
-  padding: 8px;
-  box-shadow: inset 0 0 20px #000;
-  background: #171a12;
-}
-.world {
-  height: 100%;
+.hero-art img {
   width: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  position: relative;
-  background: radial-gradient(
-    circle at 52% 39%,
-    #8a9063 0,
-    #505943 22%,
-    #222e2d 47%,
-    #111817 71%
-  );
-  box-shadow: inset 0 0 65px 22px #020403;
-}
-.world:before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    rgba(0, 0, 0, 0.11) 3px,
-    transparent 6px
-  );
-  opacity: 0.3;
-}
-.mountain {
-  position: absolute;
-  width: 140%;
-  height: 50%;
-  left: -20%;
-  bottom: 0;
-  clip-path: polygon(
-    0 62%,
-    12% 27%,
-    20% 47%,
-    38% 10%,
-    50% 35%,
-    64% 2%,
-    80% 39%,
-    93% 22%,
-    100% 52%,
-    100% 100%,
-    0 100%
-  );
-}
-.mountain-back {
-  background: #243128;
-  bottom: 13%;
-  opacity: 0.9;
-}
-.mountain-front {
-  background: linear-gradient(#17241e, #070b0b);
-  transform: scale(1.2);
-  bottom: -10%;
-}
-.portal {
-  position: absolute;
-  width: 37%;
-  height: 66%;
-  left: 32%;
-  bottom: 6%;
-  border: 12px solid #3e3b2b;
-  border-radius: 55% 55% 15% 15%;
-  box-shadow:
-    0 0 0 3px #92805a,
-    0 0 40px #b7a86b,
-    inset 0 0 22px #c4b978;
-  transform: rotate(8deg);
-}
-.portal:before {
-  content: "";
-  position: absolute;
-  inset: -20px;
-  border: 3px solid #171813;
-  border-radius: 55% 55% 15% 15%;
-}
-.portal-core {
   height: 100%;
-  border-radius: 50% 50% 0 0;
-  background: radial-gradient(
-    ellipse at center,
-    #e1d39a 0,
-    #9bb296 23%,
-    #456b60 42%,
-    #112b28 68%
-  );
-  box-shadow: inset 0 0 20px 4px #101f1c;
-  opacity: 0.85;
-}
-.rune {
-  position: absolute;
-  color: #bba16d;
-  font-size: 24px;
-  text-shadow: 0 0 12px #e2b662;
-}
-.rune-one {
-  top: 40px;
-  right: 60px;
-}
-.rune-two {
-  bottom: 42px;
-  right: 38px;
-}
-.rune-three {
-  left: 38px;
-  bottom: 100px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 .divider {
   height: 25px;
@@ -1193,12 +1055,8 @@ footer {
     grid-template-columns: 1.2fr 0.8fr;
   }
   .hero-art {
-    opacity: 0.58;
-    transform: translateX(60px);
-  }
-  .outer-ring {
-    height: 360px;
-    width: 360px;
+    height: 420px;
+    opacity: 0.94;
   }
   .guild-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1265,13 +1123,12 @@ footer {
     position: absolute;
     right: -160px;
     bottom: -120px;
-    height: 350px;
-    opacity: 0.19;
+    height: 340px;
+    width: 300px;
+    border-width: 0;
+    padding: 0;
+    opacity: 0.24;
     pointer-events: none;
-  }
-  .outer-ring {
-    height: 330px;
-    width: 330px;
   }
   .hero-actions {
     align-items: stretch;

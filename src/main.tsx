@@ -41,6 +41,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/warcraftcn/pagination";
 import { Cursor } from "@/components/ui/warcraftcn/cursor";
+import heroArt from "@/assets/hero-alliance.webp";
 import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
@@ -1207,21 +1208,14 @@ function App() {
                     </Button>
                   </div>
                 </div>
-                <div className="hero-art" aria-hidden="true">
-                  <div className="outer-ring">
-                    <div className="inner-ring">
-                      <div className="world">
-                        <div className="mountain mountain-back" />
-                        <div className="mountain mountain-front" />
-                        <div className="portal">
-                          <div className="portal-core" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <span className="rune rune-one">✦</span>
-                  <span className="rune rune-two">✧</span>
-                  <span className="rune rune-three">✦</span>
+                <div className="hero-art wc-card-border">
+                  <img
+                    src={heroArt}
+                    alt="Alliance heroes of World of Warcraft: Forever looking out over a distant tree-city"
+                    width={1000}
+                    height={686}
+                    fetchPriority="high"
+                  />
                 </div>
               </div>
             </section>

@@ -99,36 +99,31 @@
       .lost-actions {
         display: flex;
         justify-content: center;
-        gap: 14px;
-        flex-wrap: wrap;
-      }
-      .lost-actions a {
-        font: 600 12px "Cinzel", Georgia, serif;
-        letter-spacing: 0.05em;
-        text-decoration: none;
-        padding: 13px 22px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
       }
       .lost-actions .primary {
-        background: #3f6b4f;
-        border: 1px solid #1d3224;
-        color: #f3f0e4;
+        background: linear-gradient(180deg, #3b4742, #222c28);
+        border: 1px solid #6d5a33;
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.14),
-          0 4px 14px rgba(0, 0, 0, 0.4);
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          0 4px 14px rgba(0, 0, 0, 0.45);
+        color: #f5ecd6;
+        min-height: 51px;
+        font: 600 12px "Cinzel", Georgia, serif;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        padding: 8px 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: filter 0.1s;
       }
       .lost-actions .primary:hover {
-        filter: brightness(1.1);
+        filter: brightness(1.12);
       }
-      .lost-actions .secondary {
-        background: none;
-        border: 1px solid #695638;
-        color: #d8c59b;
-      }
-      .lost-actions .secondary:hover {
-        background: #2b2419;
+      .lost-actions .primary:active {
+        filter: brightness(0.8);
+        transform: scale(0.96);
       }
       .rune {
         position: absolute;
@@ -178,7 +173,6 @@
         </p>
         <div class="lost-actions">
           <a class="primary" href="/">Return to the archive</a>
-          <a class="secondary" href="/#archive">Search the archive</a>
         </div>
       </div>
     </div>
