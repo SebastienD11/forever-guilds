@@ -1,0 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap");
+
+.fantasy {
+  font-family: "Cinzel", serif;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+
+/* Border-image classes for responsive frames */
+.wc-btn-border {
+  border-image-source: url("../assets/button-bg.webp");
+}
+.wc-btn-border-frame {
+  border-image-source: url("../assets/button-bg-with-frame.webp");
+}
+.wc-card-border {
+  border-image-source: url("../assets/card-bg.webp");
+}
+
+.wc-input-border {
+  border-image-source: url("../assets/input-frame.webp");
+}
+.wc-textarea-border {
+  border-image-source: url("../assets/textarea-bg.webp");
+}
