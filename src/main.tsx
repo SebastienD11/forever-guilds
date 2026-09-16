@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/warcraftcn/card";
 import { Input } from "@/components/ui/warcraftcn/input";
 import { Badge } from "@/components/ui/warcraftcn/badge";
 import { Textarea } from "@/components/ui/warcraftcn/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/warcraftcn/dropdown-menu";
 import type { Guild, GuildDetail, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
@@ -27,7 +28,17 @@ function Field({ label, hint, children, required }: { label: string; hint?: stri
 }
 
 function Select({ value, onChange, options, placeholder, required = false, ariaLabel }: { value: string; onChange: (value: string) => void; options: string[]; placeholder: string; required?: boolean; ariaLabel?: string }) {
-  return <span className="select-wrap"><select aria-label={ariaLabel} required={required} value={value} onChange={e => onChange(e.target.value)}><option value="">{placeholder}</option>{options.map(option => <option key={option} value={option}>{option}</option>)}</select><ChevronDown size={15} /></span>;
+  return <div className="select-wrap"><DropdownMenu>
+    <DropdownMenuTrigger asChild><button type="button" className="select-trigger" aria-label={value ? `${ariaLabel ?? placeholder}: ${value}` : ariaLabel ?? placeholder} aria-required={required || undefined} data-empty={!value}>
+      <span>{value || placeholder}</span><ChevronDown size={15} aria-hidden="true" />
+    </button></DropdownMenuTrigger>
+    <DropdownMenuContent className="select-menu" align="start" style={{ minWidth: "var(--radix-dropdown-menu-trigger-width)" }}>
+      <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+        {!required && <DropdownMenuRadioItem value="">{placeholder}</DropdownMenuRadioItem>}
+        {options.map(option => <DropdownMenuRadioItem key={option} value={option}>{option}</DropdownMenuRadioItem>)}
+      </DropdownMenuRadioGroup>
+    </DropdownMenuContent>
+  </DropdownMenu></div>;
 }
 
 function GuildCard({ guild, onOpen }: { guild: Guild; onOpen: () => void }) {
@@ -47,7 +58,13 @@ function GuildForm({ onDone, onClose }: { onDone: (id: string) => void; onClose:
   const [busy, setBusy] = useState(false);
   const set = (key: keyof typeof form, value: string) => setForm(current => ({ ...current, [key]: value }));
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setError("");
+    e.preventDefault();
+    if (!form.region || !form.old_faction || !form.wow_version) {
+      setError("Choose the region, faction, and WoW version for your old guild.");
+      e.currentTarget.querySelector<HTMLButtonElement>('.select-trigger[data-empty="true"]')?.focus();
+      return;
+    }
+    setBusy(true); setError("");
     try { const result = await post<{ id: string }>("/api/guilds", form); onDone(result.id); }
     catch (err) { const e = err as Error & { existingId?: string }; if (e.existingId) onDone(e.existingId); else setError(e.message); }
     finally { setBusy(false); }
@@ -73,7 +90,7 @@ function PlanForm({ guildId, guildName, onDone, onClose }: { guildId: string; gu
   const [form, setForm] = useState({ name: guildName, region: "", ruleset: "", faction: "", language: "", contact_url: "", note: "", website: "" });
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const set = (key: keyof typeof form, value: string) => setForm(current => ({ ...current, [key]: value }));
-  async function submit(e: React.FormEvent) { e.preventDefault(); setBusy(true); setError(""); try { await post(`/api/guilds/${guildId}/plans`, form); onDone(); } catch (err) { setError((err as Error).message); } finally { setBusy(false); } }
+  async function submit(e: React.FormEvent) { e.preventDefault(); if (!form.region || !form.ruleset || !form.faction) { setError("Choose a region, ruleset, and faction for the Forever plan."); e.currentTarget.querySelector<HTMLButtonElement>('.select-trigger[data-empty="true"]')?.focus(); return; } setBusy(true); setError(""); try { await post(`/api/guilds/${guildId}/plans`, form); onDone(); } catch (err) { setError((err as Error).message); } finally { setBusy(false); } }
   return <form onSubmit={submit} className="modal-form"><div className="modal-intro"><span className="eyebrow gold">A NEW CHAPTER</span><h2>Share a reunion plan.</h2><p>Tell old guildmates where you intend to gather in Forever. This is a community plan, not an in-game verification.</p></div>
     <div className="form-grid"><Field label="Forever guild name" required><Input required minLength={2} maxLength={80} value={form.name} onChange={e => set("name", e.target.value)} /></Field><Field label="Region" required><Select required placeholder="Select region" value={form.region} onChange={value => set("region", value)} options={["EU", "US", "KR", "TW"]} /></Field><Field label="Ruleset" required hint="Hardcore is planned for after launch."><Select required placeholder="Select ruleset" value={form.ruleset} onChange={value => set("ruleset", value)} options={["Normal", "PvP", "Roleplaying", "Hardcore"]} /></Field><Field label="Faction" required><Select required placeholder="Select faction" value={form.faction} onChange={value => set("faction", value)} options={["Alliance", "Horde"]} /></Field><Field label="Guild language" required><Input required minLength={2} maxLength={50} placeholder="e.g. English, Français" value={form.language} onChange={e => set("language", e.target.value)} /></Field><Field label="Public contact link" hint="Optional. Discord invite or guild website."><Input type="url" maxLength={300} placeholder="https://..." value={form.contact_url} onChange={e => set("contact_url", e.target.value)} /></Field></div>
     <Field label="A note for returning members"><Textarea maxLength={500} placeholder="Who should get in touch? What are you planning?" value={form.note} onChange={e => set("note", e.target.value)} /></Field><input className="honeypot" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.website} onChange={e => set("website", e.target.value)} />
@@ -114,7 +131,7 @@ function App() {
   async function submitted() { setModal(null); if (detail) await openGuild(detail.guild.id); else await loadGuilds(); }
   useEffect(() => { const timer = setTimeout(() => { loadGuilds(); }, 250); return () => clearTimeout(timer); }, [query, filters]);
   useEffect(() => { async function syncFromUrl() { const id = new URLSearchParams(location.search).get("guild"); if (id) { try { setDetail(await request<GuildDetail>(`/api/guilds/${id}`)); } catch { setDetail(null); } } else setDetail(null); } syncFromUrl(); addEventListener("popstate", syncFromUrl); return () => removeEventListener("popstate", syncFromUrl); }, []);
-  useEffect(() => { function key(e: KeyboardEvent) { if (e.key === "Escape") setModal(null); } window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
+  useEffect(() => { function key(e: KeyboardEvent) { if (e.key === "Escape" && !(e.target instanceof Element && e.target.closest('[data-slot="dropdown-menu-content"]'))) setModal(null); } window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
   useEffect(() => { document.body.style.overflow = modal ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [modal]);
   return <div className="site-shell"><header className="site-header"><div className="header-inner"><a className="brand" href="/" onClick={e => { e.preventDefault(); closeDetail(); }}><span className="brand-mark"><Shield size={22} /><span>✦</span></span><span><strong>FOREVER</strong><em>GUILDS</em></span></a><nav className="nav"><button className="nav-add" onClick={() => setModal("guild")}><Plus size={15} /> Add your guild</button></nav></div></header>
   <main>{detail ? <Detail detail={detail} onBack={closeDetail} onPlan={() => setModal("plan")} onMemory={() => setModal("memory")} /> : <><section className="hero"><div className="hero-glow" /><div className="hero-inner"><div className="hero-copy"><h1>Some bonds are<br /><i>forever.</i></h1><p>Remember the guild that made Azeroth feel like home? Find your old comrades, share a memory, and see where your paths might meet again in World of Warcraft: Forever.</p><div className="hero-actions"><Button onClick={() => document.getElementById("archive")?.scrollIntoView({ behavior: "smooth" })}>Find your guild <ArrowRight size={17} /></Button><button onClick={() => setModal("guild")} className="hero-secondary"><Plus size={17} /> Add an old guild</button></div></div><div className="hero-art" aria-hidden="true"><div className="outer-ring"><div className="inner-ring"><div className="world"><div className="mountain mountain-back" /><div className="mountain mountain-front" /><div className="portal"><div className="portal-core" /></div></div></div></div><span className="rune rune-one">✦</span><span className="rune rune-two">✧</span><span className="rune rune-three">✦</span></div></div></section>

@@ -23,3 +23,7 @@
 .wc-textarea-border {
   border-image-source: url("../assets/textarea-bg.webp");
 }
+
+.wc-dropdown-border {
+  border-image-source: url("../assets/dropdown-menu-bg.webp");
+}
