@@ -144,6 +144,107 @@ function Turnstile({
   return <div className="turnstile" ref={container} />;
 }
 
+function NotebookLogo() {
+  return (
+    <svg className="brand-notebook" viewBox="0 0 48 44" aria-hidden="true">
+      <defs>
+        <linearGradient id="nb-leather" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a2a18" />
+          <stop offset="1" stopColor="#1c130b" />
+        </linearGradient>
+        <linearGradient id="nb-page" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#efe3c6" />
+          <stop offset="1" stopColor="#d6c29a" />
+        </linearGradient>
+      </defs>
+      <g transform="rotate(-4 24 24)">
+        <rect
+          x="2"
+          y="7"
+          width="44"
+          height="34"
+          rx="3"
+          fill="url(#nb-leather)"
+          stroke="#8f6b36"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M24 10 L6 12 L4 36 L22 39 Z"
+          fill="url(#nb-page)"
+          stroke="#b99b66"
+          strokeWidth="0.8"
+        />
+        <path
+          d="M24 10 L42 12 L44 36 L26 39 Z"
+          fill="url(#nb-page)"
+          stroke="#b99b66"
+          strokeWidth="0.8"
+        />
+        <line
+          x1="24"
+          y1="10"
+          x2="24"
+          y2="39"
+          stroke="#8a6b3a"
+          strokeWidth="0.8"
+          opacity="0.5"
+        />
+        <line
+          x1="9"
+          y1="18"
+          x2="21"
+          y2="19"
+          stroke="#b08a52"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+        <line
+          x1="9"
+          y1="23"
+          x2="21"
+          y2="24"
+          stroke="#b08a52"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+        <line
+          x1="9"
+          y1="28"
+          x2="21"
+          y2="29"
+          stroke="#b08a52"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+        <line
+          x1="27"
+          y1="18"
+          x2="39"
+          y2="19"
+          stroke="#b08a52"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+        <line
+          x1="27"
+          y1="23"
+          x2="39"
+          y2="24"
+          stroke="#b08a52"
+          strokeWidth="0.7"
+          opacity="0.6"
+        />
+        <path d="M25.5 9.5 L28.5 9.5 L28.5 22 L27 19.5 L25.5 22 Z" fill="#7a2f24" />
+        <text x="33" y="35" fontSize="7" fill="#8f6b36" textAnchor="middle">
+          ✦
+        </text>
+        <rect x="5.5" y="10" width="3" height="3" fill="#c9a35c" />
+        <rect x="39.5" y="33" width="3" height="3" fill="#c9a35c" />
+      </g>
+    </svg>
+  );
+}
+
 function Field({
   label,
   hint,
@@ -1145,8 +1246,7 @@ function App() {
             }}
           >
             <span className="brand-mark">
-              <Shield size={22} />
-              <span>✦</span>
+              <NotebookLogo />
             </span>
             <span>
               <strong>FOREVER</strong>
