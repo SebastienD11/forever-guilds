@@ -148,98 +148,128 @@ function NotebookLogo() {
   return (
     <svg className="brand-notebook" viewBox="0 0 48 44" aria-hidden="true">
       <defs>
-        <linearGradient id="nb-leather" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3a2a18" />
-          <stop offset="1" stopColor="#1c130b" />
-        </linearGradient>
         <linearGradient id="nb-page" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#efe3c6" />
+          <stop offset="0" stopColor="#f3e7cb" />
           <stop offset="1" stopColor="#d6c29a" />
         </linearGradient>
+        <linearGradient id="nb-handle" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#4a3a22" />
+          <stop offset="1" stopColor="#8f6b36" />
+        </linearGradient>
+        <linearGradient id="nb-glass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#dce8f0" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#8aa4b5" stopOpacity="0.28" />
+        </linearGradient>
+        <clipPath id="nb-lens">
+          <circle cx="24" cy="19" r="14" />
+        </clipPath>
       </defs>
-      <g transform="rotate(-4 24 24)">
+      <g>
         <rect
-          x="2"
-          y="7"
-          width="44"
-          height="34"
-          rx="3"
-          fill="url(#nb-leather)"
-          stroke="#8f6b36"
-          strokeWidth="1.2"
+          x="30"
+          y="27"
+          width="18"
+          height="5"
+          rx="2.5"
+          transform="rotate(40 30 27)"
+          fill="url(#nb-handle)"
+          stroke="#6d542f"
+          strokeWidth="0.8"
+        />
+        <circle
+          cx="24"
+          cy="19"
+          r="14"
+          fill="#191206"
+          stroke="#d3b06a"
+          strokeWidth="2.4"
+        />
+        <g clipPath="url(#nb-lens)">
+          <path
+            d="M24 8 L10 10 L8 28 L22 32 Z"
+            fill="url(#nb-page)"
+            stroke="#b99b66"
+            strokeWidth="0.8"
+          />
+          <path
+            d="M24 8 L38 10 L40 28 L26 32 Z"
+            fill="url(#nb-page)"
+            stroke="#b99b66"
+            strokeWidth="0.8"
+          />
+          <line
+            x1="24"
+            y1="8"
+            x2="24"
+            y2="32"
+            stroke="#8a6b3a"
+            strokeWidth="0.9"
+            opacity="0.55"
+          />
+          <line
+            x1="12.5"
+            y1="15"
+            x2="21"
+            y2="16"
+            stroke="#b08a52"
+            strokeWidth="1"
+            opacity="0.75"
+          />
+          <line
+            x1="12.5"
+            y1="19.5"
+            x2="21"
+            y2="20.5"
+            stroke="#b08a52"
+            strokeWidth="1"
+            opacity="0.75"
+          />
+          <line
+            x1="12.5"
+            y1="24"
+            x2="21"
+            y2="25"
+            stroke="#b08a52"
+            strokeWidth="1"
+            opacity="0.75"
+          />
+          <line
+            x1="27"
+            y1="15"
+            x2="35.5"
+            y2="16"
+            stroke="#b08a52"
+            strokeWidth="1"
+            opacity="0.75"
+          />
+          <line
+            x1="27"
+            y1="19.5"
+            x2="35.5"
+            y2="20.5"
+            stroke="#b08a52"
+            strokeWidth="1"
+            opacity="0.75"
+          />
+          <text x="31" y="29" fontSize="6.5" fill="#8f6b36" textAnchor="middle">
+            ✦
+          </text>
+        </g>
+        <circle
+          cx="24"
+          cy="19"
+          r="14"
+          fill="url(#nb-glass)"
+          pointerEvents="none"
         />
         <path
-          d="M24 10 L6 12 L4 36 L22 39 Z"
-          fill="url(#nb-page)"
-          stroke="#b99b66"
-          strokeWidth="0.8"
+          d="M17 8.5 A12 12 0 0 1 24 5"
+          fill="none"
+          stroke="#ffffff"
+          strokeOpacity="0.45"
+          strokeWidth="1.6"
+          strokeLinecap="round"
         />
-        <path
-          d="M24 10 L42 12 L44 36 L26 39 Z"
-          fill="url(#nb-page)"
-          stroke="#b99b66"
-          strokeWidth="0.8"
-        />
-        <line
-          x1="24"
-          y1="10"
-          x2="24"
-          y2="39"
-          stroke="#8a6b3a"
-          strokeWidth="0.8"
-          opacity="0.5"
-        />
-        <line
-          x1="9"
-          y1="18"
-          x2="21"
-          y2="19"
-          stroke="#b08a52"
-          strokeWidth="0.7"
-          opacity="0.6"
-        />
-        <line
-          x1="9"
-          y1="23"
-          x2="21"
-          y2="24"
-          stroke="#b08a52"
-          strokeWidth="0.7"
-          opacity="0.6"
-        />
-        <line
-          x1="9"
-          y1="28"
-          x2="21"
-          y2="29"
-          stroke="#b08a52"
-          strokeWidth="0.7"
-          opacity="0.6"
-        />
-        <line
-          x1="27"
-          y1="18"
-          x2="39"
-          y2="19"
-          stroke="#b08a52"
-          strokeWidth="0.7"
-          opacity="0.6"
-        />
-        <line
-          x1="27"
-          y1="23"
-          x2="39"
-          y2="24"
-          stroke="#b08a52"
-          strokeWidth="0.7"
-          opacity="0.6"
-        />
-        <path d="M25.5 9.5 L28.5 9.5 L28.5 22 L27 19.5 L25.5 22 Z" fill="#7a2f24" />
-        <text x="33" y="35" fontSize="7" fill="#8f6b36" textAnchor="middle">
-          ✦
-        </text>
-        <rect x="5.5" y="10" width="3" height="3" fill="#c9a35c" />
-        <rect x="39.5" y="33" width="3" height="3" fill="#c9a35c" />
       </g>
     </svg>
   );
