@@ -26,6 +26,8 @@
 .archive-pagination [aria-current=page]{color:#f0cf8c}
 
 @media(min-width:901px){.hero h1{font-size:clamp(57px,5.3vw,76px)}.hero h1>span{white-space:nowrap}}
-.nav .nav-add{border-width:5px;border-image-slice:16 fill;background-position:center;background-size:cover;background-repeat:no-repeat}
-.modal{border-width:24px;border-style:solid;border-image-slice:24 fill;border-image-repeat:stretch;background:#1c1812;padding:24px 25px}
-@media(max-width:680px){.modal{border-width:16px;border-image-slice:16 fill;padding:19px 10px}}
+.header-primary{min-height:42px;padding:5px 14px;font:600 10px 'Cinzel',Georgia,serif;letter-spacing:.05em}
+.hero-actions .hero-secondary-button{min-height:68px;color:#d8c59b;filter:sepia(.55) saturate(.4) brightness(.78);text-shadow:0 1px 2px #000}
+.hero-actions .hero-secondary-button:hover{color:#f0ddb1;filter:sepia(.45) saturate(.55) brightness(.95)}
+.modal-card{width:min(718px,100%);position:relative;display:block;padding:58px 62px;color:#e7d6b8;border-radius:0}
+@media(max-width:680px){.header-primary{padding:4px 10px;font-size:9px}.modal-card{padding:43px 28px}}
