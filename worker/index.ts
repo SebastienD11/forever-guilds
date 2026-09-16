@@ -30,6 +30,28 @@ const rulesets = ["Normal", "PvP", "Roleplaying", "Hardcore"] as const;
 const wowVersions = ["Retail", "Vanilla", "Classic", "Private"] as const;
 type TurnstileAction = "add_guild" | "add_plan" | "add_memory";
 
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "guild";
+
+async function uniqueSlug(db: D1Database, name: string): Promise<string> {
+  const base = slugify(name);
+  const existing = await db
+    .prepare("SELECT slug FROM guilds WHERE slug = ? OR slug LIKE ?")
+    .bind(base, `${base}-%`)
+    .all<{ slug: string }>();
+  const taken = new Set(existing.results.map((row) => row.slug));
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+
 const escapeHtml = (value: string) =>
   value.replace(
     /[&<>"']/g,
@@ -148,11 +170,11 @@ const guildSelect = `SELECT g.*, (SELECT COUNT(*) FROM plans p WHERE p.guild_id=
 
 async function guildDetail(
   db: D1Database,
-  id: string,
+  identifier: string,
 ): Promise<GuildDetail | null> {
   const guild = await db
-    .prepare(`${guildSelect} WHERE g.id=?`)
-    .bind(id)
+    .prepare(`${guildSelect} WHERE g.id=? OR g.slug=?`)
+    .bind(identifier, identifier)
     .first<Guild>();
   if (!guild) return null;
   const [plans, memories] = await Promise.all([
@@ -160,13 +182,13 @@ async function guildDetail(
       .prepare(
         "SELECT * FROM plans WHERE guild_id=? ORDER BY created_at DESC LIMIT 50",
       )
-      .bind(id)
+      .bind(guild.id)
       .all<Plan>(),
     db
       .prepare(
         "SELECT * FROM memories WHERE guild_id=? ORDER BY created_at DESC LIMIT 100",
       )
-      .bind(id)
+      .bind(guild.id)
       .all<Memory>(),
   ]);
   return { guild, plans: plans.results, memories: memories.results };
@@ -175,9 +197,9 @@ async function guildDetail(
 async function guildPage(
   request: Request,
   env: Env,
-  id: string,
+  identifier: string,
 ): Promise<Response> {
-  const detail = await guildDetail(env.DB, id);
+  const detail = await guildDetail(env.DB, identifier);
   if (!detail)
     return new Response("Guild not found.", {
       status: 404,
@@ -185,7 +207,7 @@ async function guildPage(
     });
 
   const origin = env.SITE_ORIGIN.replace(/\/$/, "");
-  const canonical = `${origin}/guild/${id}`;
+  const canonical = `${origin}/guild/${detail.guild.slug}`;
   const title = `${detail.guild.name} on ${detail.guild.old_realm} | Forever Guilds`;
   const description = `Reconnect with members of ${detail.guild.name} from ${detail.guild.old_realm} on Forever Guilds.`;
   const assetResponse = await env.ASSETS.fetch(
@@ -233,13 +255,13 @@ async function guildPage(
 async function sitemap(env: Env): Promise<Response> {
   const origin = env.SITE_ORIGIN.replace(/\/$/, "");
   const guilds = await env.DB.prepare(
-    "SELECT id, created_at FROM guilds ORDER BY created_at DESC LIMIT 10000",
-  ).all<{ id: string; created_at: string }>();
+    "SELECT slug, created_at FROM guilds ORDER BY created_at DESC LIMIT 10000",
+  ).all<{ slug: string; created_at: string }>();
   const urls = [
     `<url><loc>${escapeHtml(origin)}/</loc></url>`,
     ...guilds.results.map(
       (guild) =>
-        `<url><loc>${escapeHtml(`${origin}/guild/${guild.id}`)}</loc><lastmod>${escapeHtml(guild.created_at.replace(" ", "T"))}Z</lastmod></url>`,
+        `<url><loc>${escapeHtml(`${origin}/guild/${guild.slug}`)}</loc><lastmod>${escapeHtml(guild.created_at.replace(" ", "T"))}Z</lastmod></url>`,
     ),
   ];
   return new Response(
@@ -336,12 +358,14 @@ async function api(request: Request, env: Env): Promise<Response> {
         "Add a guild name, old realm, region, faction, and WoW version.",
       );
     const id = crypto.randomUUID();
+    const slug = await uniqueSlug(env.DB, name);
     try {
       await env.DB.prepare(
-        "INSERT INTO guilds (id,name,old_realm,region,old_faction,wow_version,years,story) VALUES (?,?,?,?,?,?,?,?)",
+        "INSERT INTO guilds (id,slug,name,old_realm,region,old_faction,wow_version,years,story) VALUES (?,?,?,?,?,?,?,?,?)",
       )
         .bind(
           id,
+          slug,
           name,
           oldRealm,
           data.region,
@@ -354,27 +378,27 @@ async function api(request: Request, env: Env): Promise<Response> {
     } catch (e) {
       if (String(e).includes("UNIQUE")) {
         const existing = await env.DB.prepare(
-          "SELECT id FROM guilds WHERE lower(name)=lower(?) AND lower(old_realm)=lower(?) AND region=? AND wow_version=?",
+          "SELECT id, slug FROM guilds WHERE lower(name)=lower(?) AND lower(old_realm)=lower(?) AND region=? AND wow_version=?",
         )
           .bind(name, oldRealm, data.region, data.wow_version)
-          .first<{ id: string }>();
+          .first<{ id: string; slug: string }>();
         return json(
           {
             error:
               "This guild is already listed. Open its page to add your reunion plan or note.",
             existingId: existing?.id,
+            slug: existing?.slug,
           },
           409,
         );
       }
       throw e;
     }
-    return json({ id }, 201);
+    return json({ id, slug }, 201);
   }
 
   const id = parts[2];
-  if (parts[1] !== "guilds" || !id || !/^[0-9a-f-]{36}$/i.test(id))
-    return error("Not found.", 404);
+  if (parts[1] !== "guilds" || !id) return error("Not found.", 404);
   if (request.method === "GET" && parts.length === 3) {
     const detail = await guildDetail(env.DB, id);
     return detail
@@ -385,7 +409,8 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (
     request.method === "POST" &&
     parts.length === 4 &&
-    (parts[3] === "plans" || parts[3] === "memories")
+    (parts[3] === "plans" || parts[3] === "memories") &&
+    /^[0-9a-f-]{36}$/i.test(id)
   ) {
     const exists = await env.DB.prepare("SELECT id FROM guilds WHERE id=?")
       .bind(id)
@@ -450,11 +475,9 @@ export default {
       const url = new URL(request.url);
       if (request.method === "GET" && url.pathname === "/sitemap.xml")
         return await sitemap(env);
-      const guildMatch = url.pathname.match(
-        /^\/guild\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
-      );
+      const guildMatch = url.pathname.match(/^\/guild\/([^/]+)$/);
       if (request.method === "GET" && guildMatch)
-        return await guildPage(request, env, guildMatch[1]);
+        return await guildPage(request, env, decodeURIComponent(guildMatch[1]));
       if (url.pathname.startsWith("/api/")) return await api(request, env);
       return env.ASSETS.fetch(request);
     } catch (e) {

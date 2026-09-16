@@ -5,6 +5,7 @@ export type WowVersion = "Retail" | "Vanilla" | "Classic" | "Private";
 
 export interface Guild {
   id: string;
+  slug: string;
   name: string;
   old_realm: string;
   wow_version: WowVersion;

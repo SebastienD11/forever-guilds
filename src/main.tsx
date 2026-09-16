@@ -226,7 +226,7 @@ function Select({
 function GuildCard({ guild, onOpen }: { guild: Guild; onOpen: () => void }) {
   return (
     <a
-      href={`/guild/${guild.id}`}
+      href={`/guild/${guild.slug}`}
       className="guild-card-button"
       onClick={(event) => {
         event.preventDefault();
@@ -285,7 +285,7 @@ function GuildForm({
   onDone,
   onClose,
 }: {
-  onDone: (id: string) => void;
+  onDone: (guild: { id: string; slug: string }) => void;
   onClose: () => void;
 }) {
   const [form, setForm] = useState({
@@ -322,14 +322,14 @@ function GuildForm({
     setBusy(true);
     setError("");
     try {
-      const result = await post<{ id: string }>("/api/guilds", {
+      const result = await post<{ id: string; slug: string }>("/api/guilds", {
         ...form,
         "cf-turnstile-response": turnstileToken,
       });
-      onDone(result.id);
+      onDone(result);
     } catch (err) {
-      const e = err as Error & { existingId?: string };
-      if (e.existingId) onDone(e.existingId);
+      const e = err as Error & { existingId?: string; slug?: string };
+      if (e.existingId && e.slug) onDone({ id: e.existingId, slug: e.slug });
       else setError(e.message);
     } finally {
       setBusy(false);
@@ -432,8 +432,7 @@ function GuildForm({
         onToken={setTurnstileToken}
       />
       <p className="public-notice">
-        Submissions are public. See our{" "}
-        <a href="/privacy.html">privacy policy</a>.
+        Submissions are public. See our <a href="/privacy">privacy policy</a>.
       </p>
       {error && (
         <p className="form-error" role="alert">
@@ -601,8 +600,7 @@ function PlanForm({
         onToken={setTurnstileToken}
       />
       <p className="public-notice">
-        Submissions are public. See our{" "}
-        <a href="/privacy.html">privacy policy</a>.
+        Submissions are public. See our <a href="/privacy">privacy policy</a>.
       </p>
       {error && (
         <p className="form-error" role="alert">
@@ -718,8 +716,7 @@ function MemoryForm({
         onToken={setTurnstileToken}
       />
       <p className="public-notice">
-        Submissions are public. See our{" "}
-        <a href="/privacy.html">privacy policy</a>.
+        Submissions are public. See our <a href="/privacy">privacy policy</a>.
       </p>
       {error && (
         <p className="form-error" role="alert">
@@ -1050,12 +1047,12 @@ function App() {
       if (requestId === guildRequest.current) setLoading(false);
     }
   }
-  async function openGuild(id: string) {
+  async function openGuild(guild: { id: string; slug: string }) {
     setError("");
     try {
-      setDetail(await request<GuildDetail>(`/api/guilds/${id}`));
-      if (location.pathname !== `/guild/${id}`)
-        history.pushState({}, "", `/guild/${id}`);
+      setDetail(await request<GuildDetail>(`/api/guilds/${guild.id}`));
+      if (location.pathname !== `/guild/${guild.slug}`)
+        history.pushState({}, "", `/guild/${guild.slug}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError((err as Error).message);
@@ -1070,7 +1067,7 @@ function App() {
   }
   async function submitted() {
     setModal(null);
-    if (detail) await openGuild(detail.guild.id);
+    if (detail) await openGuild(detail.guild);
     else await loadGuilds();
   }
   useEffect(() => {
@@ -1081,13 +1078,12 @@ function App() {
   }, [query, filters, page]);
   useEffect(() => {
     async function syncFromUrl() {
-      const pathId = location.pathname.match(
-        /^\/guild\/([0-9a-f-]{36})$/i,
-      )?.[1];
-      const id = pathId ?? new URLSearchParams(location.search).get("guild");
-      if (id) {
+      const pathSlug = location.pathname.match(/^\/guild\/([^/]+)$/)?.[1];
+      const identifier =
+        pathSlug ?? new URLSearchParams(location.search).get("guild");
+      if (identifier) {
         try {
-          setDetail(await request<GuildDetail>(`/api/guilds/${id}`));
+          setDetail(await request<GuildDetail>(`/api/guilds/${identifier}`));
         } catch {
           setDetail(null);
         }
@@ -1299,7 +1295,7 @@ function App() {
                         <GuildCard
                           key={guild.id}
                           guild={guild}
-                          onOpen={() => openGuild(guild.id)}
+                          onOpen={() => openGuild(guild)}
                         />
                       ))}
                     </div>
@@ -1431,7 +1427,7 @@ function App() {
             </a>
           </span>
           <span className="footer-links">
-            <a href="/privacy.html">Privacy</a>
+            <a href="/privacy">Privacy</a>
             <a
               href="https://github.com/SebastienD11/forever-guilds/issues/new"
               target="_blank"
@@ -1471,9 +1467,9 @@ function App() {
             {modal === "guild" ? (
               <GuildForm
                 onClose={() => setModal(null)}
-                onDone={async (id) => {
+                onDone={async (guild) => {
                   setModal(null);
-                  await openGuild(id);
+                  await openGuild(guild);
                 }}
               />
             ) : detail && modal === "plan" ? (
