@@ -47,6 +47,9 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (parts[0] !== "api") return error("Not found.", 404);
 
   if (request.method === "GET" && parts.length === 2 && parts[1] === "guilds") {
+    const pageSize = 12;
+    const pageParam = Number(url.searchParams.get("page") || 1);
+    const requestedPage = Number.isSafeInteger(pageParam) && pageParam > 0 ? pageParam : 1;
     const q = clean(url.searchParams.get("q"), 80);
     const region = url.searchParams.get("region");
     const faction = url.searchParams.get("faction");
@@ -58,8 +61,13 @@ async function api(request: Request, env: Env): Promise<Response> {
     if (faction && oneOf(faction, factions)) { filters.push("g.old_faction=?"); bindings.push(faction); }
     if (ruleset && oneOf(ruleset, rulesets)) { filters.push("EXISTS (SELECT 1 FROM plans p WHERE p.guild_id=g.id AND p.ruleset=?)"); bindings.push(ruleset); }
     const where = filters.length ? ` WHERE ${filters.join(" AND ")}` : "";
-    const results = await env.DB.prepare(`${guildSelect}${where} ORDER BY g.created_at DESC LIMIT 100`).bind(...bindings).all<Guild>();
-    return json({ guilds: results.results });
+    const count = await env.DB.prepare(`SELECT COUNT(*) AS total FROM guilds g${where}`).bind(...bindings).first<{ total: number }>();
+    const total = count?.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(requestedPage, totalPages);
+    const results = await env.DB.prepare(`${guildSelect}${where} ORDER BY g.created_at DESC, g.id DESC LIMIT ? OFFSET ?`)
+      .bind(...bindings, pageSize, (page - 1) * pageSize).all<Guild>();
+    return json({ guilds: results.results, total, page, pageSize, totalPages });
   }
 
   if (request.method === "POST" && parts.length === 2 && parts[1] === "guilds") {

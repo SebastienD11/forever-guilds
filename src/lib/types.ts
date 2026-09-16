@@ -17,6 +17,14 @@ export interface Guild {
   memory_count: number;
 }
 
+export interface GuildPage {
+  guilds: Guild[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface Plan {
   id: string;
   guild_id: string;

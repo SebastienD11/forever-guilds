@@ -19,3 +19,8 @@
 .footer-credit a{display:inline-flex;align-items:center;gap:3px;color:#c8a66a}
 .footer-credit a:hover{text-decoration:underline;color:#e4c17d}
 @media(max-width:680px){.footer-credit{align-self:flex-end}}
+
+.archive-pagination-area{display:flex;flex-direction:column;align-items:center;gap:17px;margin-top:39px}
+.archive-pagination-area>p{margin:0;color:#a99b82;font-size:12px}
+.archive-pagination ul{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:0;padding:0}
+.archive-pagination [aria-current=page]{color:#f0cf8c}

@@ -2,7 +2,7 @@
 
 A community archive for people who played together in vanilla World of Warcraft to find one another ahead of World of Warcraft: Forever. Visitors can add an old guild, post a public guildmate note, and share a proposed Forever reunion with a region, ruleset, faction, and language.
 
-The UI uses copy-paste [Warcraft CN](https://www.warcraftcn.com/docs) Button, Card, Input, Badge, Textarea, and Dropdown Menu components plus their local frame assets. Their license is in `src/components/ui/warcraftcn/LICENSE.md`.
+The UI uses copy-paste [Warcraft CN](https://www.warcraftcn.com/docs) Button, Card, Input, Badge, Textarea, Dropdown Menu, and Pagination components plus their local frame assets. Their license is in `src/components/ui/warcraftcn/LICENSE.md`.
 
 ## Run locally
 
@@ -33,6 +33,8 @@ The D1 binding and database ID are recorded in `wrangler.jsonc`. A custom domain
 ## Data and trust
 
 Guild names are unique by old realm, region, and WoW version (Retail, Vanilla, or Classic). Existing listings are treated as Vanilla when applying the second migration. Additional Forever plans and guildmate notes attach to the existing record. Plans are player submitted and explicitly marked unverified. The app stores only the public fields entered in the forms. External contact links are optional and limited to HTTP(S).
+
+The archive API returns 12 guilds per page with a total count. Search and filters apply before pagination, and changing either returns to page one.
 
 Submissions appear immediately. Before opening the site to a large public audience, add moderation or stronger abuse controls. The current honeypot and input limits are basic safeguards, not a spam defense.
 

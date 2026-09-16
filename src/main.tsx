@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, Compass, Crown, ExternalLink, Flag, Globe2, Heart, MessageCircle, Plus, Search, Shield, Swords, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/warcraftcn/button";
@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/warcraftcn/input";
 import { Badge } from "@/components/ui/warcraftcn/badge";
 import { Textarea } from "@/components/ui/warcraftcn/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/warcraftcn/dropdown-menu";
-import type { Guild, GuildDetail, Memory, Plan } from "@/lib/types";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/warcraftcn/pagination";
+import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
 type Modal = "guild" | "plan" | "memory" | null;
@@ -120,23 +121,64 @@ function Detail({ detail, onBack, onPlan, onMemory }: { detail: GuildDetail; onB
     </section></div></div>;
 }
 
+function ArchivePagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (page: number) => void }) {
+  if (totalPages <= 1) return null;
+  const pages = [...new Set([1, page - 1, page, page + 1, totalPages])]
+    .filter(value => value >= 1 && value <= totalPages).sort((a, b) => a - b);
+  const items: React.ReactNode[] = [];
+  const navigate = (event: React.MouseEvent<HTMLAnchorElement>, target: number) => {
+    event.preventDefault();
+    if (target >= 1 && target <= totalPages && target !== page) onChange(target);
+  };
+  pages.forEach((value, index) => {
+    const previous = pages[index - 1];
+    if (previous && value - previous === 2) {
+      const missing = previous + 1;
+      items.push(<PaginationItem key={missing}><PaginationLink href="#archive" onClick={event => navigate(event, missing)} aria-label={`Go to page ${missing}`}>{missing}</PaginationLink></PaginationItem>);
+    } else if (previous && value - previous > 2) {
+      items.push(<PaginationItem key={`ellipsis-${value}`}><PaginationEllipsis /></PaginationItem>);
+    }
+    items.push(<PaginationItem key={value}><PaginationLink href="#archive" isActive={value === page} onClick={event => navigate(event, value)} aria-label={`Go to page ${value}`}>{value}</PaginationLink></PaginationItem>);
+  });
+  return <Pagination className="archive-pagination" aria-label="Guild archive pages"><PaginationContent>
+    <PaginationItem><PaginationPrevious href="#archive" disabled={page === 1} onClick={event => navigate(event, page - 1)} /></PaginationItem>
+    {items}
+    <PaginationItem><PaginationNext href="#archive" disabled={page === totalPages} onClick={event => navigate(event, page + 1)} /></PaginationItem>
+  </PaginationContent></Pagination>;
+}
+
 function App() {
   const [guilds, setGuilds] = useState<Guild[]>([]); const [detail, setDetail] = useState<GuildDetail | null>(null);
   const [query, setQuery] = useState(""); const [filters, setFilters] = useState(initialFilters);
+  const [page, setPage] = useState(1); const [total, setTotal] = useState(0); const [totalPages, setTotalPages] = useState(1); const [pageSize, setPageSize] = useState(12);
+  const guildRequest = useRef(0);
   const [modal, setModal] = useState<Modal>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
-  const filter = (key: keyof Filters, value: string) => setFilters(current => ({ ...current, [key]: value }));
-  async function loadGuilds() { setLoading(true); setError(""); try { const params = new URLSearchParams({ q: query, ...filters }); const data = await request<{ guilds: Guild[] }>(`/api/guilds?${params}`); setGuilds(data.guilds); } catch (err) { setError((err as Error).message); } finally { setLoading(false); } }
+  const filter = (key: keyof Filters, value: string) => { guildRequest.current++; setLoading(true); setPage(1); setFilters(current => ({ ...current, [key]: value })); };
+  const search = (value: string) => { guildRequest.current++; setLoading(true); setPage(1); setQuery(value); };
+  const goToPage = (value: number) => { guildRequest.current++; setLoading(true); setPage(value); document.getElementById("archive")?.scrollIntoView({ behavior: "smooth" }); };
+  async function loadGuilds() {
+    const requestId = ++guildRequest.current;
+    setLoading(true); setError("");
+    try {
+      const params = new URLSearchParams({ q: query, ...filters, page: String(page) });
+      const data = await request<GuildPage>(`/api/guilds?${params}`);
+      if (requestId !== guildRequest.current) return;
+      setGuilds(data.guilds); setTotal(data.total); setTotalPages(data.totalPages); setPageSize(data.pageSize);
+      if (data.page !== page) setPage(data.page);
+    } catch (err) { if (requestId === guildRequest.current) setError((err as Error).message); }
+    finally { if (requestId === guildRequest.current) setLoading(false); }
+  }
   async function openGuild(id: string) { setError(""); try { setDetail(await request<GuildDetail>(`/api/guilds/${id}`)); if (new URLSearchParams(location.search).get("guild") !== id) history.pushState({}, "", `/?guild=${id}`); window.scrollTo({ top: 0, behavior: "smooth" }); } catch (err) { setError((err as Error).message); } }
   function closeDetail() { setDetail(null); if (location.search) history.pushState({}, "", "/"); loadGuilds(); window.scrollTo({ top: 0, behavior: "smooth" }); }
   async function submitted() { setModal(null); if (detail) await openGuild(detail.guild.id); else await loadGuilds(); }
-  useEffect(() => { const timer = setTimeout(() => { loadGuilds(); }, 250); return () => clearTimeout(timer); }, [query, filters]);
+  useEffect(() => { const timer = setTimeout(() => { loadGuilds(); }, 250); return () => clearTimeout(timer); }, [query, filters, page]);
   useEffect(() => { async function syncFromUrl() { const id = new URLSearchParams(location.search).get("guild"); if (id) { try { setDetail(await request<GuildDetail>(`/api/guilds/${id}`)); } catch { setDetail(null); } } else setDetail(null); } syncFromUrl(); addEventListener("popstate", syncFromUrl); return () => removeEventListener("popstate", syncFromUrl); }, []);
   useEffect(() => { function key(e: KeyboardEvent) { if (e.key === "Escape" && !(e.target instanceof Element && e.target.closest('[data-slot="dropdown-menu-content"]'))) setModal(null); } window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
   useEffect(() => { document.body.style.overflow = modal ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [modal]);
   return <div className="site-shell"><header className="site-header"><div className="header-inner"><a className="brand" href="/" onClick={e => { e.preventDefault(); closeDetail(); }}><span className="brand-mark"><Shield size={22} /><span>✦</span></span><span><strong>FOREVER</strong><em>GUILDS</em></span></a><nav className="nav"><button className="nav-add" onClick={() => setModal("guild")}><Plus size={15} /> Add your guild</button></nav></div></header>
   <main>{detail ? <Detail detail={detail} onBack={closeDetail} onPlan={() => setModal("plan")} onMemory={() => setModal("memory")} /> : <><section className="hero"><div className="hero-glow" /><div className="hero-inner"><div className="hero-copy"><h1>Some bonds are<br /><i>forever.</i></h1><p>Remember the guild that made Azeroth feel like home? Find your old comrades, share a memory, and see where your paths might meet again in World of Warcraft: Forever.</p><div className="hero-actions"><Button onClick={() => document.getElementById("archive")?.scrollIntoView({ behavior: "smooth" })}>Find your guild <ArrowRight size={17} /></Button><button onClick={() => setModal("guild")} className="hero-secondary"><Plus size={17} /> Add an old guild</button></div></div><div className="hero-art" aria-hidden="true"><div className="outer-ring"><div className="inner-ring"><div className="world"><div className="mountain mountain-back" /><div className="mountain mountain-front" /><div className="portal"><div className="portal-core" /></div></div></div></div><span className="rune rune-one">✦</span><span className="rune rune-two">✧</span><span className="rune rune-three">✦</span></div></div></section>
-  <div className="divider"><span>✦</span></div><section className="archive-section" id="archive"><div className="content-width"><div className="archive-heading"><div><span className="eyebrow gold">THE GUILD ARCHIVE</span><h2>Find your people <span>again.</span></h2><p>Search by old guild or realm. Every listing is written by players, for players.</p></div><div className="archive-count"><strong>{guilds.length}</strong><span>{guilds.length === 1 ? "guild shown" : "guilds shown"}</span></div></div><div className="search-panel"><div className="search-box"><Search size={19} /><Input aria-label="Search guild or old realm" placeholder="Search an old guild or realm..." value={query} onChange={e => setQuery(e.target.value)} /></div><div className="filters"><Select placeholder="All regions" value={filters.region} onChange={value => filter("region", value)} options={["EU", "US", "KR", "TW"]} /><Select placeholder="Both factions" value={filters.faction} onChange={value => filter("faction", value)} options={["Alliance", "Horde"]} /><Select placeholder="Any Forever ruleset" value={filters.ruleset} onChange={value => filter("ruleset", value)} options={["Normal", "PvP", "Roleplaying", "Hardcore"]} /></div></div>
-  {error ? <div className="archive-empty"><Shield size={34} /><h3>Could not load the archive</h3><p>{error}</p><button onClick={loadGuilds}>Try again <ArrowRight size={15} /></button></div> : loading ? <div className="loading-state">Opening the archive...</div> : guilds.length ? <div className="guild-grid">{guilds.map(guild => <GuildCard key={guild.id} guild={guild} onOpen={() => openGuild(guild.id)} />)}</div> : <div className="archive-empty"><div className="empty-emblem"><Users size={37} /></div><span className="eyebrow">AN UNWRITTEN CHAPTER</span><h3>{query || filters.region || filters.faction || filters.ruleset ? "No guilds match that trail." : "The archive begins with you."}</h3><p>{query || filters.region || filters.faction || filters.ruleset ? "Try another name, realm, or filter — or add the guild you remember." : "No guilds have been added yet. Put your old banner on the map so your friends can find their way back."}</p><Button onClick={() => setModal("guild")}>Add your guild <ArrowRight size={16} /></Button></div>}</div></section>
+  <div className="divider"><span>✦</span></div><section className="archive-section" id="archive"><div className="content-width"><div className="archive-heading"><div><span className="eyebrow gold">THE GUILD ARCHIVE</span><h2>Find your people <span>again.</span></h2><p>Search by old guild or realm. Every listing is written by players, for players.</p></div><div className="archive-count"><strong>{total}</strong><span>{total === 1 ? "guild found" : "guilds found"}</span></div></div><div className="search-panel"><div className="search-box"><Search size={19} /><Input aria-label="Search guild or old realm" placeholder="Search an old guild or realm..." value={query} onChange={e => search(e.target.value)} /></div><div className="filters"><Select placeholder="All regions" value={filters.region} onChange={value => filter("region", value)} options={["EU", "US", "KR", "TW"]} /><Select placeholder="Both factions" value={filters.faction} onChange={value => filter("faction", value)} options={["Alliance", "Horde"]} /><Select placeholder="Any Forever ruleset" value={filters.ruleset} onChange={value => filter("ruleset", value)} options={["Normal", "PvP", "Roleplaying", "Hardcore"]} /></div></div>
+  {error ? <div className="archive-empty"><Shield size={34} /><h3>Could not load the archive</h3><p>{error}</p><button onClick={loadGuilds}>Try again <ArrowRight size={15} /></button></div> : loading ? <div className="loading-state">Opening the archive...</div> : guilds.length ? <><div className="guild-grid">{guilds.map(guild => <GuildCard key={guild.id} guild={guild} onOpen={() => openGuild(guild.id)} />)}</div>{totalPages > 1 && <div className="archive-pagination-area"><p>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total} guilds</p><ArchivePagination page={page} totalPages={totalPages} onChange={goToPage} /></div>}</> : <div className="archive-empty"><div className="empty-emblem"><Users size={37} /></div><span className="eyebrow">AN UNWRITTEN CHAPTER</span><h3>{query || filters.region || filters.faction || filters.ruleset ? "No guilds match that trail." : "The archive begins with you."}</h3><p>{query || filters.region || filters.faction || filters.ruleset ? "Try another name, realm, or filter — or add the guild you remember." : "No guilds have been added yet. Put your old banner on the map so your friends can find their way back."}</p><Button onClick={() => setModal("guild")}>Add your guild <ArrowRight size={16} /></Button></div>}</div></section>
   <section className="how-section" id="how-it-works"><div className="content-width"><div className="how-head"><span className="eyebrow gold">THE JOURNEY BACK</span><h2>From then to <i>Forever</i></h2></div><div className="steps"><div><span className="step-icon"><BookOpen /></span><span className="step-number">01 / REMEMBER</span><h3>Find the old banner</h3><p>Search the guild name and original realm you knew in WoW.</p></div><div><span className="step-icon"><Heart /></span><span className="step-number">02 / RECONNECT</span><h3>Leave a familiar name</h3><p>Post the character name your guildmates would remember and a public hello.</p></div><div><span className="step-icon"><Compass /></span><span className="step-number">03 / REGROUP</span><h3>Mark a new path</h3><p>Share a Forever plan with a region, ruleset, faction, and guild language.</p></div></div><div className="rules-note"><Shield size={20} /><p><strong>About Forever's rulesets.</strong> Forever has no named realms. Players choose Normal, PvP, or Roleplaying at launch; Hardcore is planned for later. How guilds work across rulesets has not been announced, so listings here are community plans.</p><a href="https://worldofwarcraft.blizzard.com/en-us/news/24303313" target="_blank" rel="noopener noreferrer">Blizzard's recap <ExternalLink size={14} /></a></div></div></section></> }</main>
   <footer><div className="content-width footer-inner"><div className="footer-brand"><Shield size={22} /><span>FOREVER GUILDS</span></div><p>A community project for finding old friends. Not affiliated with Blizzard Entertainment.</p><span className="footer-credit">Built with Warcraft CN from <a href="https://www.orcdev.com/" target="_blank" rel="noopener noreferrer">OrcDev <ExternalLink size={12} /></a></span></div></footer>
   {modal && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setModal(null); }}><div className="modal" role="dialog" aria-modal="true" aria-label={modal === "guild" ? "Add guild" : modal === "plan" ? "Add Forever plan" : "Leave a note"}><button className="modal-close" aria-label="Close" onClick={() => setModal(null)}><X size={20} /></button>{modal === "guild" ? <GuildForm onClose={() => setModal(null)} onDone={async id => { setModal(null); await openGuild(id); }} /> : detail && modal === "plan" ? <PlanForm guildId={detail.guild.id} guildName={detail.guild.name} onClose={() => setModal(null)} onDone={submitted} /> : detail && <MemoryForm guildId={detail.guild.id} onClose={() => setModal(null)} onDone={submitted} />}</div></div>}
