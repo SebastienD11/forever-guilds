@@ -2,7 +2,7 @@
 
 A community archive for people who played together in vanilla World of Warcraft to find one another ahead of World of Warcraft: Forever. Visitors can add an old guild, post a public guildmate note, and share a proposed Forever reunion with a region, ruleset, faction, and language.
 
-The UI uses copy-paste [Warcraft CN](https://www.warcraftcn.com/docs) Button, Card, Input, Badge, Textarea, Dropdown Menu, and Pagination components plus their local frame assets. Their license is in `src/components/ui/warcraftcn/LICENSE.md`.
+The UI uses copy-paste [Warcraft CN](https://www.warcraftcn.com/docs) Button, Card, Input, Badge, Textarea, Dropdown Menu, Pagination, and Cursor components plus their local frame assets. Their license is in `src/components/ui/warcraftcn/LICENSE.md`.
 
 ## Run locally
 

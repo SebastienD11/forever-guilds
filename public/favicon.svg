@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="48%" r="58%">
+      <stop offset="0" stop-color="#7b8568"/>
+      <stop offset=".58" stop-color="#27352f"/>
+      <stop offset="1" stop-color="#101612"/>
+    </radialGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#e4d88f"/>
+      <stop offset=".55" stop-color="#668879"/>
+      <stop offset="1" stop-color="#183029"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#12120e"/>
+  <circle cx="32" cy="32" r="27" fill="none" stroke="#6f5429" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="24" fill="url(#sky)" stroke="#b18a48" stroke-width="2"/>
+  <path d="M8 41 21 29l8 7 9-13 18 14v15H8z" fill="#26382f" opacity=".9"/>
+  <path d="M23 49V31c0-7 4-13 9-13s9 6 9 13v18z" fill="#29291f" stroke="#c4b47b" stroke-width="2.5"/>
+  <path d="M27 48V31c0-5 2-9 5-9s5 4 5 9v17z" fill="url(#glow)"/>
+  <path d="m13 10 1.5 3.5L18 15l-3.5 1.5L13 20l-1.5-3.5L8 15l3.5-1.5z" fill="#dfbd70"/>
+  <path d="m50 46 1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="#dfbd70"/>
+</svg>

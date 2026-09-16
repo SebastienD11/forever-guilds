@@ -27,3 +27,8 @@
 .wc-dropdown-border {
   border-image-source: url("../assets/dropdown-menu-bg.webp");
 }
+
+.wc-human-cursor,
+.wc-human-cursor * {
+  cursor: url("../assets/cursors/human.cur"), auto;
+}

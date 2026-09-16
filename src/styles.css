@@ -24,3 +24,8 @@
 .archive-pagination-area>p{margin:0;color:#a99b82;font-size:12px}
 .archive-pagination ul{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:0;padding:0}
 .archive-pagination [aria-current=page]{color:#f0cf8c}
+
+@media(min-width:901px){.hero h1{font-size:clamp(57px,5.3vw,76px)}.hero h1>span{white-space:nowrap}}
+.nav .nav-add{border-width:5px;border-image-slice:16 fill;background-position:center;background-size:cover;background-repeat:no-repeat}
+.modal{border-width:24px;border-style:solid;border-image-slice:24 fill;border-image-repeat:stretch;background:#1c1812;padding:24px 25px}
+@media(max-width:680px){.modal{border-width:16px;border-image-slice:16 fill;padding:19px 10px}}
