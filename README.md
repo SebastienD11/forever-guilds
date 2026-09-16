@@ -28,14 +28,24 @@ npm run db:remote # when there are new migrations
 npx wrangler deploy
 ```
 
+Before the first protected deployment, add the Turnstile widget secret to the `forever-guilds` Worker as an encrypted secret named `TURNSTILE_SECRET`. The widget must allow `forever-guilds.seb-delrue.workers.dev`; add `localhost` and `127.0.0.1` only for local testing. Production hostname validation is configured separately in `wrangler.jsonc`.
+
+Before applying a production migration, record a recovery bookmark:
+
+```bash
+npx wrangler d1 time-travel info forever-guilds
+```
+
+D1 Time Travel is automatic and retains recovery history for the plan's retention period. Restores overwrite the live database, so test the documented `wrangler d1 time-travel restore` process against a non-production database before it is needed.
+
 The D1 binding and database ID are recorded in `wrangler.jsonc`. A custom domain can be added later without changing the app's API paths.
 
 ## Data and trust
 
-Guild names are unique by old realm, region, and WoW version (Retail, Vanilla, or Classic). Existing listings are treated as Vanilla when applying the second migration. Additional Forever plans and guildmate notes attach to the existing record. Plans are player submitted and explicitly marked unverified. The app stores only the public fields entered in the forms. External contact links are optional and limited to HTTP(S).
+Guild names are unique by old realm, region, and WoW version (Retail, Vanilla, Classic, or Private). Existing listings are treated as Vanilla when applying the second migration. Additional Forever plans and guildmate notes attach to the existing record. Plans are player submitted and explicitly marked unverified. The app stores only the public fields entered in the forms. External contact links are optional and limited to HTTP(S).
 
 The archive API returns 12 guilds per page with a total count. Search and filters apply before pagination, and changing either returns to page one.
 
-Submissions appear immediately. Before opening the site to a large public audience, add moderation or stronger abuse controls. The current honeypot and input limits are basic safeguards, not a spam defense.
+Submissions appear immediately after Turnstile verification and are limited per source. Reports and removal requests are accepted through the repository issue tracker linked in the footer. For urgent moderation, identify the record in D1, remove dependent plans and memories before deleting a guild, verify the public page, and retain the issue URL as the audit record. If abuse becomes sustained, set `SUBMISSIONS_ENABLED` to `false` in `wrangler.jsonc` and deploy before reviewing entries.
 
 Forever has no published named realm list. The app records a **planned** ruleset and never assumes guilds can span rulesets. Blizzard describes Normal, PvP, and Roleplaying at launch, with Hardcore later. See [Blizzard's recap](https://worldofwarcraft.blizzard.com/en-us/news/24303313) and the [realmless guide](https://lfcarry.com/guides/wow-forever-realmless).

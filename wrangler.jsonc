@@ -3,14 +3,31 @@
   "name": "forever-guilds",
   "main": "worker/index.ts",
   "compatibility_date": "2026-09-16",
-  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/guild/*", "/sitemap.xml"],
+  },
+  "vars": {
+    "SITE_ORIGIN": "https://forever-guilds.seb-delrue.workers.dev",
+    "TURNSTILE_HOSTNAMES": "forever-guilds.seb-delrue.workers.dev",
+    "SUBMISSIONS_ENABLED": "true",
+  },
+  "secrets": { "required": ["TURNSTILE_SECRET"] },
+  "ratelimits": [
+    {
+      "name": "SUBMISSION_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 },
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "forever-guilds",
       "database_id": "7be94179-86b2-41a0-9c9c-534ca5cff071",
-      "migrations_dir": "migrations"
-    }
+      "migrations_dir": "migrations",
+    },
   ],
-  "observability": { "enabled": true, "traces": { "enabled": true } }
+  "observability": { "enabled": true, "traces": { "enabled": true } },
 }

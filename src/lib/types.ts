@@ -1,7 +1,7 @@
 export type Region = "EU" | "US" | "KR" | "TW";
 export type Faction = "Alliance" | "Horde";
 export type Ruleset = "Normal" | "PvP" | "Roleplaying" | "Hardcore";
-export type WowVersion = "Retail" | "Vanilla" | "Classic";
+export type WowVersion = "Retail" | "Vanilla" | "Classic" | "Private";
 
 export interface Guild {
   id: string;

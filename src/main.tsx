@@ -47,6 +47,20 @@ import "./styles.css";
 type Modal = "guild" | "plan" | "memory" | null;
 type Filters = { region: string; faction: string; ruleset: string };
 const initialFilters: Filters = { region: "", faction: "", ruleset: "" };
+const turnstileSiteKey = "0x4AAAAAAE5B2mt2uydvstqG";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement,
+        options: Record<string, string | ((token?: string) => void)>,
+      ) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, options);
@@ -68,6 +82,66 @@ const formatDate = (date: string) =>
     month: "short",
     year: "numeric",
   });
+
+function Turnstile({
+  action,
+  resetKey,
+  onToken,
+}: {
+  action: "add_guild" | "add_plan" | "add_memory";
+  resetKey: number;
+  onToken: (token: string) => void;
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const render = () => {
+      if (!container.current || !window.turnstile || widgetId.current) return;
+      widgetId.current = window.turnstile.render(container.current, {
+        sitekey: turnstileSiteKey,
+        action,
+        theme: "dark",
+        size: "flexible",
+        appearance: "interaction-only",
+        callback: (token) => onToken(token ?? ""),
+        "expired-callback": () => onToken(""),
+        "error-callback": () => onToken(""),
+      });
+    };
+
+    let script = document.querySelector<HTMLScriptElement>(
+      'script[data-turnstile="true"]',
+    );
+    if (!script) {
+      script = document.createElement("script");
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.dataset.turnstile = "true";
+      document.head.append(script);
+    }
+    script.addEventListener("load", render);
+    render();
+
+    return () => {
+      script?.removeEventListener("load", render);
+      if (widgetId.current && window.turnstile) {
+        window.turnstile.remove(widgetId.current);
+      }
+      widgetId.current = null;
+    };
+  }, [action, onToken]);
+
+  useEffect(() => {
+    if (widgetId.current && window.turnstile) {
+      window.turnstile.reset(widgetId.current);
+    }
+  }, [resetKey]);
+
+  return <div className="turnstile" ref={container} />;
+}
 
 function Field({
   label,
@@ -151,9 +225,13 @@ function Select({
 
 function GuildCard({ guild, onOpen }: { guild: Guild; onOpen: () => void }) {
   return (
-    <button
+    <a
+      href={`/guild/${guild.id}`}
       className="guild-card-button"
-      onClick={onOpen}
+      onClick={(event) => {
+        event.preventDefault();
+        onOpen();
+      }}
       aria-label={`View ${guild.name} from ${guild.old_realm}`}
     >
       <Card className="guild-card" data-size="sm">
@@ -199,7 +277,7 @@ function GuildCard({ guild, onOpen }: { guild: Guild; onOpen: () => void }) {
           </div>
         </CardContent>
       </Card>
-    </button>
+    </a>
   );
 }
 
@@ -222,6 +300,8 @@ function GuildForm({
   });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const set = (key: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
   async function submit(e: React.FormEvent) {
@@ -235,10 +315,17 @@ function GuildForm({
         ?.focus();
       return;
     }
+    if (!turnstileToken) {
+      setError("Complete the security check before submitting.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      const result = await post<{ id: string }>("/api/guilds", form);
+      const result = await post<{ id: string }>("/api/guilds", {
+        ...form,
+        "cf-turnstile-response": turnstileToken,
+      });
       onDone(result.id);
     } catch (err) {
       const e = err as Error & { existingId?: string };
@@ -246,6 +333,8 @@ function GuildForm({
       else setError(e.message);
     } finally {
       setBusy(false);
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
     }
   }
   return (
@@ -303,7 +392,7 @@ function GuildForm({
             placeholder="Select version"
             value={form.wow_version}
             onChange={(value) => set("wow_version", value)}
-            options={["Retail", "Vanilla", "Classic"]}
+            options={["Retail", "Vanilla", "Classic", "Private"]}
           />
         </Field>
         <Field
@@ -337,6 +426,15 @@ function GuildForm({
         value={form.website}
         onChange={(e) => set("website", e.target.value)}
       />
+      <Turnstile
+        action="add_guild"
+        resetKey={turnstileReset}
+        onToken={setTurnstileToken}
+      />
+      <p className="public-notice">
+        Submissions are public. See our{" "}
+        <a href="/privacy.html">privacy policy</a>.
+      </p>
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -346,7 +444,7 @@ function GuildForm({
         <button type="button" className="text-button" onClick={onClose}>
           Cancel
         </button>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || !turnstileToken}>
           {busy ? "Saving..." : "Add guild to archive"} <ArrowRight size={15} />
         </Button>
       </div>
@@ -377,6 +475,8 @@ function PlanForm({
   });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const set = (key: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
   async function submit(e: React.FormEvent) {
@@ -388,15 +488,24 @@ function PlanForm({
         ?.focus();
       return;
     }
+    if (!turnstileToken) {
+      setError("Complete the security check before submitting.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      await post(`/api/guilds/${guildId}/plans`, form);
+      await post(`/api/guilds/${guildId}/plans`, {
+        ...form,
+        "cf-turnstile-response": turnstileToken,
+      });
       onDone();
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
     }
   }
   return (
@@ -486,6 +595,15 @@ function PlanForm({
         value={form.website}
         onChange={(e) => set("website", e.target.value)}
       />
+      <Turnstile
+        action="add_plan"
+        resetKey={turnstileReset}
+        onToken={setTurnstileToken}
+      />
+      <p className="public-notice">
+        Submissions are public. See our{" "}
+        <a href="/privacy.html">privacy policy</a>.
+      </p>
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -495,7 +613,7 @@ function PlanForm({
         <button type="button" className="text-button" onClick={onClose}>
           Cancel
         </button>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || !turnstileToken}>
           {busy ? "Saving..." : "Post reunion plan"} <ArrowRight size={15} />
         </Button>
       </div>
@@ -520,19 +638,30 @@ function MemoryForm({
   });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const set = (key: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError("Complete the security check before submitting.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      await post(`/api/guilds/${guildId}/memories`, form);
+      await post(`/api/guilds/${guildId}/memories`, {
+        ...form,
+        "cf-turnstile-response": turnstileToken,
+      });
       onDone();
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
     }
   }
   return (
@@ -583,6 +712,15 @@ function MemoryForm({
         value={form.website}
         onChange={(e) => set("website", e.target.value)}
       />
+      <Turnstile
+        action="add_memory"
+        resetKey={turnstileReset}
+        onToken={setTurnstileToken}
+      />
+      <p className="public-notice">
+        Submissions are public. See our{" "}
+        <a href="/privacy.html">privacy policy</a>.
+      </p>
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -592,7 +730,7 @@ function MemoryForm({
         <button type="button" className="text-button" onClick={onClose}>
           Cancel
         </button>
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || !turnstileToken}>
           {busy ? "Saving..." : "Leave a note"} <ArrowRight size={15} />
         </Button>
       </div>
@@ -916,8 +1054,8 @@ function App() {
     setError("");
     try {
       setDetail(await request<GuildDetail>(`/api/guilds/${id}`));
-      if (new URLSearchParams(location.search).get("guild") !== id)
-        history.pushState({}, "", `/?guild=${id}`);
+      if (location.pathname !== `/guild/${id}`)
+        history.pushState({}, "", `/guild/${id}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError((err as Error).message);
@@ -925,7 +1063,8 @@ function App() {
   }
   function closeDetail() {
     setDetail(null);
-    if (location.search) history.pushState({}, "", "/");
+    if (location.pathname !== "/" || location.search)
+      history.pushState({}, "", "/");
     loadGuilds();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -942,7 +1081,10 @@ function App() {
   }, [query, filters, page]);
   useEffect(() => {
     async function syncFromUrl() {
-      const id = new URLSearchParams(location.search).get("guild");
+      const pathId = location.pathname.match(
+        /^\/guild\/([0-9a-f-]{36})$/i,
+      )?.[1];
+      const id = pathId ?? new URLSearchParams(location.search).get("guild");
       if (id) {
         try {
           setDetail(await request<GuildDetail>(`/api/guilds/${id}`));
@@ -955,6 +1097,24 @@ function App() {
     addEventListener("popstate", syncFromUrl);
     return () => removeEventListener("popstate", syncFromUrl);
   }, []);
+  useEffect(() => {
+    const description = document.querySelector<HTMLMetaElement>(
+      'meta[name="description"]',
+    );
+    if (detail) {
+      document.title = `${detail.guild.name} on ${detail.guild.old_realm} | Forever Guilds`;
+      description?.setAttribute(
+        "content",
+        `Reconnect with members of ${detail.guild.name} from ${detail.guild.old_realm} on Forever Guilds.`,
+      );
+    } else {
+      document.title = "Forever Guilds | Find Your Old World of Warcraft Guild";
+      description?.setAttribute(
+        "content",
+        "Find old World of Warcraft guildmates, share memories, and make reunion plans for WoW Forever.",
+      );
+    }
+  }, [detail]);
   useEffect(() => {
     function key(e: KeyboardEvent) {
       if (
@@ -1268,6 +1428,16 @@ function App() {
               rel="noopener noreferrer"
             >
               OrcDev <ExternalLink size={12} />
+            </a>
+          </span>
+          <span className="footer-links">
+            <a href="/privacy.html">Privacy</a>
+            <a
+              href="https://github.com/SebastienD11/forever-guilds/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Report content
             </a>
           </span>
         </div>

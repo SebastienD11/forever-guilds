@@ -1447,6 +1447,53 @@ footer {
   color: #f0cf8c;
 }
 
+button:focus-visible,
+a:focus-visible,
+[data-slot="button"]:focus-visible {
+  outline: 2px solid #f0cf8c;
+  outline-offset: 3px;
+}
+
+.turnstile {
+  min-height: 65px;
+  width: 100%;
+}
+
+.public-notice {
+  margin: -4px 0 0;
+  color: #9f927c;
+  font-size: 11px;
+}
+
+.public-notice a,
+.footer-links a {
+  color: #c8a66a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 @media (min-width: 901px) {
   .hero h1 {
     font-size: clamp(57px, 5.3vw, 76px);

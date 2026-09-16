@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="bg" cx="76%" cy="48%" r="65%"><stop stop-color="#28342b"/><stop offset=".55" stop-color="#171811"/><stop offset="1" stop-color="#0d0c09"/></radialGradient>
+    <radialGradient id="portal"><stop stop-color="#e3d990"/><stop offset=".45" stop-color="#6f9180"/><stop offset="1" stop-color="#173029"/></radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M0 90h1200M0 180h1200M0 270h1200M0 360h1200M0 450h1200M0 540h1200M100 0v630M200 0v630M300 0v630M400 0v630M500 0v630M600 0v630M700 0v630M800 0v630M900 0v630M1000 0v630M1100 0v630" stroke="#b88b43" stroke-opacity=".06"/>
+  <text x="90" y="245" fill="#f2e5ca" font-family="Georgia,serif" font-size="78" font-weight="700">FOREVER</text>
+  <text x="94" y="318" fill="#d5a858" font-family="Georgia,serif" font-size="56" letter-spacing="14">GUILDS</text>
+  <text x="94" y="390" fill="#bcb19d" font-family="Arial,sans-serif" font-size="26">Find your old World of Warcraft guild.</text>
+  <circle cx="910" cy="315" r="215" fill="#10130f" stroke="#765728" stroke-width="5"/>
+  <circle cx="910" cy="315" r="188" fill="#1b2923" stroke="#c09750" stroke-width="3"/>
+  <path d="M729 395 806 316l74 53 82-115 129 100v109H729z" fill="#293a31"/>
+  <path d="M830 452V302c0-78 36-137 80-137s80 59 80 137v150z" fill="#29291f" stroke="#c2b27a" stroke-width="12"/>
+  <path d="M861 446V303c0-55 22-99 49-99s49 44 49 99v143z" fill="url(#portal)"/>
+  <path d="m747 126 9 21 21 9-21 9-9 21-9-21-21-9 21-9zM1080 444l7 16 16 7-16 7-7 16-7-16-16-7 16-7z" fill="#dfbd70"/>
+</svg>
