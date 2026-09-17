@@ -123,7 +123,7 @@ function Turnstile({
         action,
         theme: "dark",
         size: "flexible",
-        appearance: "interaction-only",
+        appearance: "always",
         callback: (token) => onToken(token ?? ""),
         "expired-callback": () => onToken(""),
         "error-callback": () => onToken(""),
@@ -860,17 +860,15 @@ function CommentForm({
             onChange={(e) => set("username", e.target.value)}
           />
         </Field>
-        <Field label="I'll be there">
-          <label className="attending-check">
-            <input
-              type="checkbox"
-              checked={form.attending}
-              onChange={(e) => set("attending", e.target.checked)}
-            />
-            <span>Count me in for this plan</span>
-          </label>
-        </Field>
       </div>
+      <label className="attending-check">
+        <input
+          type="checkbox"
+          checked={form.attending}
+          onChange={(e) => set("attending", e.target.checked)}
+        />
+        <span>I'll be there — count me in for this plan</span>
+      </label>
       <Field label="Message">
         <Textarea
           maxLength={500}

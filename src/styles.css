@@ -1005,16 +1005,27 @@ footer {
 .attending-check {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #c9b893;
-  font-size: 12px;
+  gap: 11px;
+  border: 1px solid #5b4a31;
+  background: #211d16;
+  padding: 12px 14px;
+  color: #d8c59b;
+  font:
+    600 12px "Cinzel",
+    Georgia,
+    serif;
   cursor: pointer;
-  padding: 8px 0;
+  user-select: none;
+}
+.attending-check:hover {
+  border-color: #8a6b3d;
 }
 .attending-check input {
   accent-color: #8fae6d;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  flex-shrink: 0;
 }
 .empty-sub {
   border: 1px dashed #5b4a31;
