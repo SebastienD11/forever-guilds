@@ -10,8 +10,8 @@
     "run_worker_first": ["/api/*", "/guild/*", "/sitemap.xml"],
   },
   "vars": {
-    "SITE_ORIGIN": "https://forever-guilds.seb-delrue.workers.dev",
-    "TURNSTILE_HOSTNAMES": "forever-guilds.seb-delrue.workers.dev",
+    "SITE_ORIGIN": "https://foreverguilds.xyz",
+    "TURNSTILE_HOSTNAMES": "foreverguilds.xyz,forever-guilds.seb-delrue.workers.dev",
     "SUBMISSIONS_ENABLED": "true",
   },
   "secrets": { "required": ["TURNSTILE_SECRET"] },

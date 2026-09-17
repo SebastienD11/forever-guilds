@@ -17,7 +17,7 @@ Open the URL printed by Wrangler. `npm run dev` starts Vite separately; its `/ap
 
 ## Deploy
 
-The app is deployed at [forever-guilds.seb-delrue.workers.dev](https://forever-guilds.seb-delrue.workers.dev). The production Worker is bound to the `forever-guilds` D1 database in Cloudflare's Western Europe region. The initial local guild listing and guildmate note were copied to production on September 16, 2026.
+The app is deployed at [foreverguilds.xyz](https://foreverguilds.xyz) (also served on the `forever-guilds.seb-delrue.workers.dev` fallback). The production Worker is bound to the `forever-guilds` D1 database in Cloudflare's Western Europe region. The initial local guild listing and guildmate note were copied to production on September 16, 2026.
 
 To deploy a later change:
 
@@ -28,7 +28,7 @@ npm run db:remote # when there are new migrations
 npx wrangler deploy
 ```
 
-Before the first protected deployment, add the Turnstile widget secret to the `forever-guilds` Worker as an encrypted secret named `TURNSTILE_SECRET`. The widget must allow `forever-guilds.seb-delrue.workers.dev`; add `localhost` and `127.0.0.1` only for local testing. Production hostname validation is configured separately in `wrangler.jsonc`.
+Before the first protected deployment, add the Turnstile widget secret to the `forever-guilds` Worker as an encrypted secret named `TURNSTILE_SECRET`. The widget must allow `foreverguilds.xyz`; add `localhost` and `127.0.0.1` only for local testing. Production hostname validation is configured separately in `wrangler.jsonc`.
 
 Before applying a production migration, record a recovery bookmark:
 
