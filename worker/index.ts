@@ -24,7 +24,7 @@ const oneOf = <T extends string>(
   value: unknown,
   options: readonly T[],
 ): value is T => typeof value === "string" && options.includes(value as T);
-const regions = ["EU", "US", "KR", "TW"] as const;
+const regions = ["EU", "US", "Oceania", "KR", "TW"] as const;
 const factions = ["Alliance", "Horde"] as const;
 const rulesets = ["Normal", "PvP", "Roleplaying", "Hardcore"] as const;
 const wowVersions = ["Retail", "Vanilla", "Classic", "Private"] as const;

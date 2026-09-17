@@ -525,7 +525,7 @@ function GuildForm({
             placeholder="Select region"
             value={form.region}
             onChange={(value) => set("region", value)}
-            options={["EU", "US", "KR", "TW"]}
+            options={["EU", "US", "Oceania", "KR", "TW"]}
           />
         </Field>
         <Field label="Faction back then" required>
@@ -681,7 +681,7 @@ function PlanForm({
             placeholder="Select region"
             value={form.region}
             onChange={(value) => set("region", value)}
-            options={["EU", "US", "KR", "TW"]}
+            options={["EU", "US", "Oceania", "KR", "TW"]}
           />
         </Field>
         <Field
@@ -948,10 +948,6 @@ function Detail({
               <Plus size={16} /> Add a plan
             </Button>
           </div>
-          <p className="section-helper">
-            Player-submitted intentions. Guild creation and cross-ruleset
-            support have not been confirmed.
-          </p>
           {plans.length ? (
             <div className="entry-list">
               {plans.map((plan: Plan) => (
@@ -1022,9 +1018,6 @@ function Detail({
               <Plus size={16} /> I was there
             </Button>
           </div>
-          <p className="section-helper">
-            A place to leave a public hello for people you used to play with.
-          </p>
           {memories.length ? (
             <div className="entry-list">
               {memories.map((memory: Memory) => (
@@ -1412,7 +1405,7 @@ function App() {
                       placeholder="All regions"
                       value={filters.region}
                       onChange={(value) => filter("region", value)}
-                      options={["EU", "US", "KR", "TW"]}
+                      options={["EU", "US", "Oceania", "KR", "TW"]}
                     />
                     <Select
                       placeholder="Both factions"
