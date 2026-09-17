@@ -11,7 +11,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "fantasy min-w-0 bg-center bg-cover bg-no-repeat p-3 px-5 text-base shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         "border-solid wc-textarea-border [border-image-repeat:stretch]",
         "border-6 [border-image-slice:16_fill]",
-        "min-h-24 w-full resize-none field-sizing-content",
+        "min-h-24 w-full resize-none overflow-y-auto",
         className
       )}
       data-slot="textarea"
