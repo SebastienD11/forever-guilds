@@ -1,4 +1,10 @@
-import type { Guild, GuildDetail, Memory, Plan } from "../src/lib/types";
+import type {
+  Guild,
+  GuildDetail,
+  Memory,
+  Plan,
+  PlanComment,
+} from "../src/lib/types";
 
 const publicCache =
   "public, max-age=30, s-maxage=60, stale-while-revalidate=300";
@@ -28,7 +34,11 @@ const regions = ["EU", "US", "Oceania", "KR", "TW"] as const;
 const factions = ["Alliance", "Horde"] as const;
 const rulesets = ["Normal", "PvP", "Roleplaying", "Hardcore"] as const;
 const wowVersions = ["Retail", "Vanilla", "Classic", "Private"] as const;
-type TurnstileAction = "add_guild" | "add_plan" | "add_memory";
+type TurnstileAction =
+  | "add_guild"
+  | "add_plan"
+  | "add_memory"
+  | "add_comment";
 
 const slugify = (value: string) =>
   value
@@ -177,7 +187,7 @@ async function guildDetail(
     .bind(identifier, identifier)
     .first<Guild>();
   if (!guild) return null;
-  const [plans, memories] = await Promise.all([
+  const [plans, memories, planComments] = await Promise.all([
     db
       .prepare(
         "SELECT * FROM plans WHERE guild_id=? ORDER BY created_at DESC LIMIT 50",
@@ -190,8 +200,19 @@ async function guildDetail(
       )
       .bind(guild.id)
       .all<Memory>(),
+    db
+      .prepare(
+        "SELECT c.* FROM plan_comments c INNER JOIN plans p ON p.id=c.plan_id WHERE p.guild_id=? ORDER BY c.created_at DESC LIMIT 500",
+      )
+      .bind(guild.id)
+      .all<PlanComment>(),
   ]);
-  return { guild, plans: plans.results, memories: memories.results };
+  return {
+    guild,
+    plans: plans.results,
+    plan_comments: planComments.results,
+    memories: memories.results,
+  };
 }
 
 async function notFoundPage(
@@ -414,7 +435,9 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (
     request.method === "POST" &&
     parts.length === 4 &&
-    (parts[3] === "plans" || parts[3] === "memories") &&
+    (parts[3] === "plans" ||
+      parts[3] === "memories" ||
+      parts[3] === "plan-comments") &&
     /^[0-9a-f-]{36}$/i.test(id)
   ) {
     const exists = await env.DB.prepare("SELECT id FROM guilds WHERE id=?")
@@ -423,7 +446,12 @@ async function api(request: Request, env: Env): Promise<Response> {
     if (!exists) return error("Guild not found.", 404);
     const data = await bodyOf(request);
     if (data.website) return error("Invalid submission.");
-    const action = parts[3] === "plans" ? "add_plan" : "add_memory";
+    const action =
+      parts[3] === "plans"
+        ? "add_plan"
+        : parts[3] === "memories"
+          ? "add_memory"
+          : "add_comment";
     const blocked = await protectSubmission(request, env, data, action);
     if (blocked) return blocked;
     const link = contactUrl(data.contact_url);
@@ -432,19 +460,21 @@ async function api(request: Request, env: Env): Promise<Response> {
     if (parts[3] === "plans") {
       const name = clean(data.name, 80),
         language = clean(data.language, 50),
-        note = clean(data.note, 500);
+        note = clean(data.note, 500),
+        username = clean(data.username, 80);
       if (
         name.length < 2 ||
         language.length < 2 ||
+        username.length < 2 ||
         !oneOf(data.region, regions) ||
         !oneOf(data.faction, factions) ||
         !oneOf(data.ruleset, rulesets)
       )
         return error(
-          "Add the Forever guild name, region, ruleset, faction, and language.",
+          "Add the Forever guild name, region, ruleset, faction, language, and your username.",
         );
       await env.DB.prepare(
-        "INSERT INTO plans (id,guild_id,name,ruleset,faction,language,region,contact_url,note) VALUES (?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO plans (id,guild_id,name,ruleset,faction,language,region,contact_url,note,username) VALUES (?,?,?,?,?,?,?,?,?,?)",
       )
         .bind(
           entryId,
@@ -456,7 +486,26 @@ async function api(request: Request, env: Env): Promise<Response> {
           data.region,
           link,
           note,
+          username,
         )
+        .run();
+    } else if (parts[3] === "plan-comments") {
+      const planId = clean(data.plan_id, 80),
+        username = clean(data.username, 80),
+        message = clean(data.message, 500);
+      const attending = data.attending === true || data.attending === 1;
+      if (username.length < 2 || !/^[0-9a-f-]{36}$/i.test(planId))
+        return error("Add your username for the comment.");
+      const plan = await env.DB.prepare(
+        "SELECT id FROM plans WHERE id=? AND guild_id=?",
+      )
+        .bind(planId, id)
+        .first<{ id: string }>();
+      if (!plan) return error("Plan not found.", 404);
+      await env.DB.prepare(
+        "INSERT INTO plan_comments (id,plan_id,username,message,attending) VALUES (?,?,?,?,?)",
+      )
+        .bind(entryId, planId, username, message, attending ? 1 : 0)
         .run();
     } else {
       const characterName = clean(data.character_name, 80),

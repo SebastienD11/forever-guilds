@@ -45,7 +45,7 @@ import heroArt from "@/assets/hero-alliance.webp";
 import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
 import "./styles.css";
 
-type Modal = "guild" | "plan" | "memory" | null;
+type Modal = "guild" | "plan" | "memory" | "comment" | null;
 type Filters = { region: string; faction: string; ruleset: string };
 const initialFilters: Filters = { region: "", faction: "", ruleset: "" };
 const turnstileSiteKey = "0x4AAAAAAE5B2mt2uydvstqG";
@@ -108,7 +108,7 @@ function Turnstile({
   resetKey,
   onToken,
 }: {
-  action: "add_guild" | "add_plan" | "add_memory";
+  action: "add_guild" | "add_plan" | "add_memory" | "add_comment";
   resetKey: number;
   onToken: (token: string) => void;
 }) {
@@ -621,6 +621,7 @@ function PlanForm({
     language: "",
     contact_url: "",
     note: "",
+    username: "",
     website: "",
   });
   const [error, setError] = useState("");
@@ -636,6 +637,10 @@ function PlanForm({
       e.currentTarget
         .querySelector<HTMLButtonElement>('.select-trigger[data-empty="true"]')
         ?.focus();
+      return;
+    }
+    if (form.username.trim().length < 2) {
+      setError("Add your username so guildmates know who to reach.");
       return;
     }
     if (!turnstileToken) {
@@ -716,6 +721,16 @@ function PlanForm({
             onChange={(e) => set("language", e.target.value)}
           />
         </Field>
+        <Field label="Your username" required>
+          <Input
+            required
+            minLength={2}
+            maxLength={80}
+            placeholder="The name people should reach you by"
+            value={form.username}
+            onChange={(e) => set("username", e.target.value)}
+          />
+        </Field>
         <Field
           label="Public contact link"
           hint="Optional. Discord invite or guild website."
@@ -764,6 +779,133 @@ function PlanForm({
         </button>
         <Button type="submit" disabled={busy || !turnstileToken}>
           {busy ? "Saving..." : "Post reunion plan"} <ArrowRight size={15} />
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function CommentForm({
+  guildId,
+  planId,
+  planName,
+  onDone,
+  onClose,
+}: {
+  guildId: string;
+  planId: string;
+  planName: string;
+  onDone: () => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState({
+    username: "",
+    message: "",
+    attending: false,
+    website: "",
+  });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
+  const set = (key: keyof typeof form, value: string | boolean) =>
+    setForm((current) => ({ ...current, [key]: value }));
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (form.username.trim().length < 2) {
+      setError("Add your username so guildmates know who you are.");
+      return;
+    }
+    if (!turnstileToken) {
+      setError("Complete the security check before submitting.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await post(`/api/guilds/${guildId}/plan-comments`, {
+        plan_id: planId,
+        username: form.username,
+        message: form.message,
+        attending: form.attending,
+        "cf-turnstile-response": turnstileToken,
+      });
+      onDone();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
+    }
+  }
+  return (
+    <form onSubmit={submit} className="modal-form">
+      <div className="modal-intro">
+        <span className="eyebrow gold">JOIN THE RANKS</span>
+        <h2>Comment on “{planName}”.</h2>
+        <p>
+          Tell the guild how you plan to take part — and mark that you'll be
+          there.
+        </p>
+      </div>
+      <div className="form-grid">
+        <Field label="Your username" required>
+          <Input
+            required
+            minLength={2}
+            maxLength={80}
+            placeholder="The name your guildmates would know"
+            value={form.username}
+            onChange={(e) => set("username", e.target.value)}
+          />
+        </Field>
+        <Field label="I'll be there">
+          <label className="attending-check">
+            <input
+              type="checkbox"
+              checked={form.attending}
+              onChange={(e) => set("attending", e.target.checked)}
+            />
+            <span>Count me in for this plan</span>
+          </label>
+        </Field>
+      </div>
+      <Field label="Message">
+        <Textarea
+          maxLength={500}
+          placeholder="Who are you, and what's your plan for this reunion?"
+          value={form.message}
+          onChange={(e) => set("message", e.target.value)}
+        />
+      </Field>
+      <input
+        className="honeypot"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={form.website}
+        onChange={(e) => set("website", e.target.value)}
+      />
+      <Turnstile
+        action="add_comment"
+        resetKey={turnstileReset}
+        onToken={setTurnstileToken}
+      />
+      <p className="public-notice">
+        Submissions are public. See our <a href="/privacy">privacy policy</a>.
+      </p>
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="form-actions">
+        <button type="button" className="text-button" onClick={onClose}>
+          Cancel
+        </button>
+        <Button type="submit" disabled={busy || !turnstileToken}>
+          {busy ? "Saving..." : "Post comment"} <ArrowRight size={15} />
         </Button>
       </div>
     </form>
@@ -891,13 +1033,15 @@ function Detail({
   onBack,
   onPlan,
   onMemory,
+  onComment,
 }: {
   detail: GuildDetail;
   onBack: () => void;
   onPlan: () => void;
   onMemory: () => void;
+  onComment: (planId: string) => void;
 }) {
-  const { guild, plans, memories } = detail;
+  const { guild, plans, memories, plan_comments } = detail;
   return (
     <div className="detail-page">
       <button className="back-link" onClick={onBack}>
@@ -943,9 +1087,12 @@ function Detail({
             <Button
               variant="frame"
               className="secondary-button"
-              onClick={onPlan}
+              onClick={() =>
+                plans.length ? onComment(plans[0].id) : onPlan()
+              }
             >
-              <Plus size={16} /> Add a plan
+              <Plus size={16} />
+              {plans.length ? "Add a comment" : "Add a plan"}
             </Button>
           </div>
           {plans.length ? (
@@ -974,7 +1121,8 @@ function Detail({
                   {plan.note && <p>{plan.note}</p>}
                   <div className="entry-foot">
                     <span>
-                      Shared {formatDate(plan.created_at)} · Unverified
+                      {plan.username || "Anonymous"} · Shared{" "}
+                      {formatDate(plan.created_at)} · Unverified
                     </span>
                     {plan.contact_url && (
                       <a
@@ -986,6 +1134,31 @@ function Detail({
                       </a>
                     )}
                   </div>
+                  {plan_comments
+                    .filter((comment) => comment.plan_id === plan.id)
+                    .map((comment) => (
+                      <div className="plan-comment" key={comment.id}>
+                        <div className="plan-comment-head">
+                          <strong>{comment.username}</strong>
+                          {comment.attending === 1 && (
+                            <span className="attending-badge">
+                              <Shield size={12} /> I'll be there
+                            </span>
+                          )}
+                          <span className="entry-date">
+                            {formatDate(comment.created_at)}
+                          </span>
+                        </div>
+                        {comment.message && <p>{comment.message}</p>}
+                      </div>
+                    ))}
+                  <Button
+                    variant="frame"
+                    className="comment-button"
+                    onClick={() => onComment(plan.id)}
+                  >
+                    <Plus size={14} /> Add a comment
+                  </Button>
                 </article>
               ))}
             </div>
@@ -1148,8 +1321,13 @@ function App() {
   const [pageSize, setPageSize] = useState(12);
   const guildRequest = useRef(0);
   const [modal, setModal] = useState<Modal>(null);
+  const [commentPlanId, setCommentPlanId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const openComment = (planId: string) => {
+    setCommentPlanId(planId);
+    setModal("comment");
+  };
   const filter = (key: keyof Filters, value: string) => {
     guildRequest.current++;
     setLoading(true);
@@ -1314,6 +1492,7 @@ function App() {
             onBack={closeDetail}
             onPlan={() => setModal("plan")}
             onMemory={() => setModal("memory")}
+            onComment={openComment}
           />
         ) : (
           <>
@@ -1599,7 +1778,9 @@ function App() {
                 ? "Add guild"
                 : modal === "plan"
                   ? "Add Forever plan"
-                  : "Leave a note"
+                  : modal === "memory"
+                    ? "Leave a note"
+                    : "Add a comment"
             }
           >
             {modal === "guild" ? (
@@ -1614,6 +1795,17 @@ function App() {
               <PlanForm
                 guildId={detail.guild.id}
                 guildName={detail.guild.name}
+                onClose={() => setModal(null)}
+                onDone={submitted}
+              />
+            ) : detail && modal === "comment" && commentPlanId ? (
+              <CommentForm
+                guildId={detail.guild.id}
+                planId={commentPlanId}
+                planName={
+                  detail.plans.find((plan) => plan.id === commentPlanId)?.name ??
+                  "this plan"
+                }
                 onClose={() => setModal(null)}
                 onDone={submitted}
               />

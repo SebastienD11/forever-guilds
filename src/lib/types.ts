@@ -36,6 +36,16 @@ export interface Plan {
   region: Region;
   contact_url: string;
   note: string;
+  username: string;
+  created_at: string;
+}
+
+export interface PlanComment {
+  id: string;
+  plan_id: string;
+  username: string;
+  message: string;
+  attending: number;
   created_at: string;
 }
 
@@ -51,5 +61,6 @@ export interface Memory {
 export interface GuildDetail {
   guild: Guild;
   plans: Plan[];
+  plan_comments: PlanComment[];
   memories: Memory[];
 }
