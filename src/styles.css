@@ -988,6 +988,24 @@ footer {
   font-size: 10px;
   padding: 3px 7px;
 }
+.plan-badge-horde {
+  color: #fecaca;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+  background: rgba(127, 29, 29, 0.9);
+  border-color: #b91c1c;
+}
+.plan-badge-alliance {
+  color: #bfdbfe;
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  background: rgba(30, 58, 138, 0.9);
+  border-color: #1d4ed8;
+}
+.plan-badge-neutral {
+  color: #e7d5b0;
+  text-shadow: 0 0 8px rgba(212, 175, 106, 0.4);
+  background: rgba(80, 62, 38, 0.9);
+  border-color: #8a6b3d;
+}
 .comment-button {
   margin-top: 14px;
   min-height: 40px;

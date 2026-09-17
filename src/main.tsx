@@ -693,7 +693,7 @@ function PlanForm({
             placeholder="Select region"
             value={form.region}
             onChange={(value) => set("region", value)}
-            options={["EU", "US", "Oceania", "KR", "TW"]}
+            options={["EU", "US", "Oceania", "KR", "TW", "Unknown"]}
           />
         </Field>
         <Field
@@ -715,7 +715,7 @@ function PlanForm({
             placeholder="Select faction"
             value={form.faction}
             onChange={(value) => set("faction", value)}
-            options={["Alliance", "Horde"]}
+            options={["Alliance", "Horde", "Unknown"]}
           />
         </Field>
         <Field label="Guild language" required>
@@ -1213,8 +1213,17 @@ function Detail({
                     <h3>{plan.name}</h3>
                     <Badge
                       size="sm"
+                      className={
+                        plan.faction === "Horde"
+                          ? "plan-badge-horde"
+                          : plan.faction === "Alliance"
+                            ? "plan-badge-alliance"
+                            : "plan-badge-neutral"
+                      }
                       faction={
-                        plan.faction.toLowerCase() as "alliance" | "horde"
+                        plan.faction === "Unknown"
+                          ? undefined
+                          : (plan.faction.toLowerCase() as "alliance" | "horde")
                       }
                     >
                       {plan.faction}

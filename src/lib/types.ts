@@ -1,5 +1,5 @@
-export type Region = "EU" | "US" | "Oceania" | "KR" | "TW";
-export type Faction = "Alliance" | "Horde";
+export type Region = "EU" | "US" | "Oceania" | "KR" | "TW" | "Unknown";
+export type Faction = "Alliance" | "Horde" | "Unknown";
 export type Ruleset = "Normal" | "PvP" | "Roleplaying" | "Hardcore";
 export type WowVersion = "Retail" | "Vanilla" | "Classic" | "Private";
 
@@ -10,7 +10,7 @@ export interface Guild {
   old_realm: string;
   wow_version: WowVersion;
   region: Region;
-  old_faction: Faction | "Unknown";
+  old_faction: Faction;
   years: string;
   story: string;
   created_at: string;

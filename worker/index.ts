@@ -6,8 +6,6 @@ import type {
   PlanComment,
 } from "../src/lib/types";
 
-const publicCache =
-  "public, max-age=30, s-maxage=60, stale-while-revalidate=300";
 const securityHeaders = {
   "Content-Security-Policy":
     "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://plausible.sebastiendelrue.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com https://plausible.sebastiendelrue.me; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
@@ -30,8 +28,8 @@ const oneOf = <T extends string>(
   value: unknown,
   options: readonly T[],
 ): value is T => typeof value === "string" && options.includes(value as T);
-const regions = ["EU", "US", "Oceania", "KR", "TW"] as const;
-const factions = ["Alliance", "Horde"] as const;
+const regions = ["EU", "US", "Oceania", "KR", "TW", "Unknown"] as const;
+const factions = ["Alliance", "Horde", "Unknown"] as const;
 const rulesets = ["Normal", "PvP", "Roleplaying", "Hardcore"] as const;
 const wowVersions = ["Retail", "Vanilla", "Classic", "Private"] as const;
 type TurnstileAction =
@@ -353,11 +351,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     )
       .bind(...bindings, pageSize, (page - 1) * pageSize)
       .all<Guild>();
-    return json(
-      { guilds: results.results, total, page, pageSize, totalPages },
-      200,
-      publicCache,
-    );
+    return json({ guilds: results.results, total, page, pageSize, totalPages });
   }
 
   if (
@@ -377,7 +371,7 @@ async function api(request: Request, env: Env): Promise<Response> {
       name.length < 2 ||
       oldRealm.length < 2 ||
       !oneOf(data.region, regions) ||
-      !oneOf(data.old_faction, [...factions, "Unknown"] as const) ||
+      !oneOf(data.old_faction, factions) ||
       !oneOf(data.wow_version, wowVersions)
     )
       return error(
@@ -427,9 +421,7 @@ async function api(request: Request, env: Env): Promise<Response> {
   if (parts[1] !== "guilds" || !id) return error("Not found.", 404);
   if (request.method === "GET" && parts.length === 3) {
     const detail = await guildDetail(env.DB, id);
-    return detail
-      ? json(detail, 200, publicCache)
-      : error("Guild not found.", 404);
+    return detail ? json(detail) : error("Guild not found.", 404);
   }
 
   if (
