@@ -1596,6 +1596,7 @@ function App() {
             if (e.target === e.currentTarget) setModal(null);
           }}
         >
+          <div className="modal-wrap">
           <Card
             className="modal-card"
             role="dialog"
@@ -1608,13 +1609,6 @@ function App() {
                   : "Leave a note"
             }
           >
-            <button
-              className="modal-close"
-              aria-label="Close"
-              onClick={() => setModal(null)}
-            >
-              <X size={20} />
-            </button>
             {modal === "guild" ? (
               <GuildForm
                 onClose={() => setModal(null)}
@@ -1640,6 +1634,14 @@ function App() {
               )
             )}
           </Card>
+          <button
+            className="modal-close"
+            aria-label="Close"
+            onClick={() => setModal(null)}
+          >
+            <X size={18} />
+          </button>
+          </div>
         </div>
       )}
     </Cursor>

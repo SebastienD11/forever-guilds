@@ -1004,6 +1004,36 @@ footer {
   overflow: auto;
   padding: 36px 16px;
 }
+.modal-wrap {
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #5a4630, #241a10 72%);
+  border: 2px solid #b28e50;
+  box-shadow:
+    0 0 0 3px #17120d,
+    0 0 12px rgba(0, 0, 0, 0.65);
+  color: #f0cf8c;
+  transition:
+    filter 0.1s,
+    color 0.1s;
+}
+.modal-close:hover {
+  filter: brightness(1.2);
+  color: #fff;
+}
+.modal-close:focus-visible {
+  outline: 2px solid #f0cf8c;
+  outline-offset: 3px;
+}
 .modal {
   width: min(670px, 100%);
   position: relative;
@@ -1024,14 +1054,6 @@ footer {
   background: #211a12;
   padding: 0 9px;
   color: #d3aa61;
-}
-.modal-close {
-  position: absolute;
-  top: 17px;
-  right: 17px;
-  background: none;
-  border: 0;
-  color: #b5a080;
 }
 .modal-intro h2 {
   font:
