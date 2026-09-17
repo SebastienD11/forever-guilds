@@ -996,9 +996,9 @@ function Detail({
               <p>
                 If your guild is coming back, share where people can find you.
               </p>
-              <button onClick={onPlan}>
+              <Button className="empty-sub-action" onClick={onPlan}>
                 Add a Forever plan <ArrowRight size={15} />
-              </button>
+              </Button>
             </div>
           )}
         </section>
@@ -1046,9 +1046,9 @@ function Detail({
               <MessageCircle size={28} />
               <h3>The campfire is quiet</h3>
               <p>Be the first to let your old guildmates know you're here.</p>
-              <button onClick={onMemory}>
+              <Button className="empty-sub-action" onClick={onMemory}>
                 Leave a note <ArrowRight size={15} />
-              </button>
+              </Button>
             </div>
           )}
         </section>

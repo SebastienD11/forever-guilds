@@ -981,17 +981,8 @@ footer {
   color: #928775;
   max-width: 265px;
 }
-.empty-sub button {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  background: none;
-  border: 0;
-  color: #dcb874;
-  font:
-    600 11px "Cinzel",
-    Georgia,
-    serif;
+.empty-sub .empty-sub-action {
+  margin-top: 18px;
 }
 .modal-backdrop {
   position: fixed;
