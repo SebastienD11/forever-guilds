@@ -230,7 +230,8 @@ a {
 }
 .hero-actions [data-slot="button"],
 .archive-empty [data-slot="button"],
-.form-actions [data-slot="button"] {
+.form-actions [data-slot="button"],
+.empty-sub [data-slot="button"] {
   min-height: 51px;
   padding: 8px 20px;
   font:
