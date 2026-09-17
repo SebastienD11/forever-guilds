@@ -1367,10 +1367,16 @@ function App() {
       if (requestId === guildRequest.current) setLoading(false);
     }
   }
-  async function openGuild(guild: { id: string; slug: string }) {
+  async function openGuild(
+    guild: { id: string; slug: string },
+    fresh = false,
+  ) {
     setError("");
     try {
-      setDetail(await request<GuildDetail>(`/api/guilds/${guild.id}`));
+      const suffix = fresh ? `?cb=${Date.now()}` : "";
+      setDetail(
+        await request<GuildDetail>(`/api/guilds/${guild.id}${suffix}`),
+      );
       if (location.pathname !== `/guild/${guild.slug}`)
         history.pushState({}, "", `/guild/${guild.slug}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1387,7 +1393,7 @@ function App() {
   }
   async function submitted() {
     setModal(null);
-    if (detail) await openGuild(detail.guild);
+    if (detail) await openGuild(detail.guild, true);
     else await loadGuilds();
   }
   useEffect(() => {
