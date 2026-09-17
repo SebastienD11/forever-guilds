@@ -42,7 +42,14 @@ import {
 } from "@/components/ui/warcraftcn/pagination";
 import { Cursor } from "@/components/ui/warcraftcn/cursor";
 import heroArt from "@/assets/hero-alliance.webp";
-import type { Guild, GuildDetail, GuildPage, Memory, Plan } from "@/lib/types";
+import type {
+  Guild,
+  GuildDetail,
+  GuildPage,
+  Memory,
+  Plan,
+  PlanComment,
+} from "@/lib/types";
 import "./styles.css";
 
 type Modal = "guild" | "plan" | "memory" | "comment" | null;
@@ -1026,6 +1033,111 @@ function MemoryForm({
   );
 }
 
+const PLAN_COMMENTS_PER_PAGE = 5;
+
+function PlanComments({
+  planId,
+  comments,
+}: {
+  planId: string;
+  comments: PlanComment[];
+}) {
+  const [page, setPage] = useState(1);
+  const list = comments.filter((comment) => comment.plan_id === planId);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(list.length / PLAN_COMMENTS_PER_PAGE),
+  );
+  const safePage = Math.min(page, totalPages);
+  const slice = list.slice(
+    (safePage - 1) * PLAN_COMMENTS_PER_PAGE,
+    safePage * PLAN_COMMENTS_PER_PAGE,
+  );
+  useEffect(() => {
+    setPage(1);
+  }, [list.length]);
+  const pages = [
+    ...new Set([1, safePage - 1, safePage, safePage + 1, totalPages]),
+  ]
+    .filter((value) => value >= 1 && value <= totalPages)
+    .sort((a, b) => a - b);
+  const navigate = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    target: number,
+  ) => {
+    event.preventDefault();
+    if (target >= 1 && target <= totalPages && target !== safePage)
+      setPage(target);
+  };
+  return (
+    <>
+      {slice.map((comment) => (
+        <div className="plan-comment" key={comment.id}>
+          <div className="plan-comment-head">
+            <strong>{comment.username}</strong>
+            {comment.attending === 1 && (
+              <span className="attending-badge">
+                <Shield size={12} /> I'll be there
+              </span>
+            )}
+            <span className="entry-date">{formatDate(comment.created_at)}</span>
+          </div>
+          {comment.message && <p>{comment.message}</p>}
+        </div>
+      ))}
+      {totalPages > 1 && (
+        <div className="comment-pagination">
+          <p>
+            Showing {(safePage - 1) * PLAN_COMMENTS_PER_PAGE + 1}–
+            {Math.min(safePage * PLAN_COMMENTS_PER_PAGE, list.length)} of{" "}
+            {list.length} comments
+          </p>
+          <Pagination aria-label="Plan comments pages">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  disabled={safePage === 1}
+                  onClick={(event) => navigate(event, safePage - 1)}
+                />
+              </PaginationItem>
+              {pages.map((value, index) => {
+                const previous = pages[index - 1];
+                if (previous && value - previous > 1) {
+                  return (
+                    <PaginationItem key={`ellipsis-${value}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+                return (
+                  <PaginationItem key={value}>
+                    <PaginationLink
+                      href="#"
+                      isActive={value === safePage}
+                      onClick={(event) => navigate(event, value)}
+                      aria-label={`Go to comment page ${value}`}
+                    >
+                      {value}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  disabled={safePage === totalPages}
+                  onClick={(event) => navigate(event, safePage + 1)}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </>
+  );
+}
+
 function Detail({
   detail,
   onBack,
@@ -1132,24 +1244,7 @@ function Detail({
                       </a>
                     )}
                   </div>
-                  {plan_comments
-                    .filter((comment) => comment.plan_id === plan.id)
-                    .map((comment) => (
-                      <div className="plan-comment" key={comment.id}>
-                        <div className="plan-comment-head">
-                          <strong>{comment.username}</strong>
-                          {comment.attending === 1 && (
-                            <span className="attending-badge">
-                              <Shield size={12} /> I'll be there
-                            </span>
-                          )}
-                          <span className="entry-date">
-                            {formatDate(comment.created_at)}
-                          </span>
-                        </div>
-                        {comment.message && <p>{comment.message}</p>}
-                      </div>
-                    ))}
+                  <PlanComments planId={plan.id} comments={plan_comments} />
                   <Button
                     variant="frame"
                     className="comment-button"
